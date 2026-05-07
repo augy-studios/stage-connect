@@ -3,6 +3,11 @@
   margin: 0;
   box-sizing: border-box;
   font-family: "Jua", sans-serif;
+}
+
+[hidden] { display: none !important; }
+
+* {
 
   /* Chrome and Opera */
   user-select: none;

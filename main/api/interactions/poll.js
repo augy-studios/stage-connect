@@ -5,9 +5,13 @@ const {
 const {
     verifySession
 } = require('../../lib/auth');
+const {
+    handleCors
+} = require('../../lib/cors');
 const crypto = require('crypto');
 
 module.exports = async (req, res) => {
+    if (handleCors(req, res)) return;
     const sb = getSupabase();
 
     if (req.method === 'GET') {

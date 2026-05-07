@@ -2,10 +2,14 @@
 const {
     getSupabase
 } = require('../../lib/supabase');
+const {
+    handleCors
+} = require('../../lib/cors');
 
 const ALLOWED = ['heart', 'fire', 'clap', 'wow', 'laugh'];
 
 module.exports = async (req, res) => {
+    if (handleCors(req, res)) return;
     const sb = getSupabase();
     if (req.method === 'GET') {
         const {
