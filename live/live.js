@@ -176,19 +176,11 @@ async poll(panel, stage) {
                 <span class="poll-pct">${pct}%</span>
               </div>`;
             }
-            return ` < div class = "poll-option"
-            data - poll = "${poll.id}"
-            data - opt = "${o.id}"
-            style = "cursor:pointer"
-            onclick = "castVote('${poll.id}','${o.id}',this.closest('.panel-card'))" >
-                <
-                span class = "poll-option-text" > $ {
-                    escHtml(o.text)
-                } < /span> <
-                /div>`;
-        }).join('')
-    } <
-    /div>`;
+            return `<div class="poll-option" data-poll="${poll.id}" data-opt="${o.id}" style="cursor:pointer" onclick="castVote('${poll.id}','${o.id}',this.closest('.panel-card'))">
+                <span class="poll-option-text">${escHtml(o.text)}</span>
+              </div>`;
+        }).join('')}
+        </div>`;
 panel.appendChild(card);
 });
 },
@@ -198,7 +190,7 @@ async wordcloud(panel, stage) {
       <div class="panel-card">
         <div class="form-group"><label class="form-label">Submit a word</label>
           <div class="wc-input-row">
-            <input class="form-input" id="wc-word" placeholder="One word..." maxlength="30" />
+            <input class="form-input" id="wc-word" placeholder="One word..." maxlength="30" onkeydown="if(event.key==='Enter')submitWord('${stage.id}')" />
             <button class="btn btn-primary" onclick="submitWord('${stage.id}')">Submit</button>
           </div>
         </div>

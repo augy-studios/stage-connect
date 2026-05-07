@@ -132,6 +132,39 @@
         </div>
     </div>
 
+    <!-- Delete Stage Modal -->
+    <div id="delete-stage-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Delete Stage" hidden>
+        <div class="modal-box">
+            <div class="modal-header">
+                <span class="modal-title">Delete Stage</span>
+                <button class="modal-close" id="delete-stage-modal-close" aria-label="Close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+            <div class="publish-body">
+                <p>This will permanently delete this stage and all its data. This cannot be undone.</p>
+                <div class="publish-actions">
+                    <button class="btn btn-secondary" id="delete-stage-cancel">Cancel</button>
+                    <button class="btn btn-danger" id="delete-stage-confirm">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3,6 5,6 21,6" />
+                            <path d="M19,6l-1,14a2,2,0,0,1-2,2H8a2,2,0,0,1-2-2L5,6" />
+                            <path d="M10,11v6" />
+                            <path d="M14,11v6" />
+                            <path d="M9,6V4a1,1,0,0,1,1-1h4a1,1,0,0,1,1,1V6" />
+                        </svg>
+                        Delete Stage
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- End Session Modal -->
     <div id="end-session-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="End Session" hidden>
         <div class="modal-box">
@@ -379,6 +412,17 @@
                             <rect x="3" y="3" width="18" height="18" rx="2" />
                         </svg>
                         End Session
+                    </button>
+                    <button class="btn btn-danger btn-full" id="delete-stage-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3,6 5,6 21,6" />
+                            <path d="M19,6l-1,14a2,2,0,0,1-2,2H8a2,2,0,0,1-2-2L5,6" />
+                            <path d="M10,11v6" />
+                            <path d="M14,11v6" />
+                            <path d="M9,6V4a1,1,0,0,1,1-1h4a1,1,0,0,1,1,1V6" />
+                        </svg>
+                        Delete Stage
                     </button>
                     <div class="live-link-box" id="live-link-box" hidden>
                         <p class="live-link-label">Live at:</p>

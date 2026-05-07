@@ -956,6 +956,37 @@ function bindLiveButtons() {
             }, 0);
         };
     };
+
+    document.getElementById('delete-stage-btn').onclick = () => {
+        const modal = document.getElementById('delete-stage-modal');
+        modal.hidden = false;
+        const close = () => { modal.hidden = true; };
+        document.getElementById('delete-stage-modal-close').onclick = close;
+        document.getElementById('delete-stage-cancel').onclick = close;
+        modal.onclick = e => { if (e.target === modal) close(); };
+        document.getElementById('delete-stage-confirm').onclick = () => {
+            close();
+            const btn = document.getElementById('delete-stage-btn');
+            btn.disabled = true;
+            setTimeout(async () => {
+                try {
+                    const data = await apiPost('/api/stages/delete', {
+                        stageId: state.currentStage.id
+                    }, true);
+                    if (data.error) {
+                        toast(data.error, 'error');
+                        btn.disabled = false;
+                        return;
+                    }
+                    toast('Stage deleted.', 'success');
+                    setTimeout(() => window.location.reload(), 800);
+                } catch {
+                    toast('Failed to delete stage.', 'error');
+                    btn.disabled = false;
+                }
+            }, 0);
+        };
+    };
 }
 
 async function confirmGoLive() {
