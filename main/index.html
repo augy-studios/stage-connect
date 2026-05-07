@@ -22,12 +22,12 @@
     <meta charset="utf-8">
     <title>Stage Connect | UwU Apps</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="An interactive presentation platform inspired by Pigeonhole Live and Mentimeter.">
+    <meta name="description" content="Join a live interactive stage — polls, Q&A, quizzes, and more.">
 
     <meta property="og:type" content="website">
     <meta property="og:title" content="Stage Connect | UwU Apps" />
     <meta property="og:site_name" content="UwU Apps" />
-    <meta property="og:description" content="An interactive presentation platform inspired by Pigeonhole Live and Mentimeter." />
+    <meta property="og:description" content="Join a live interactive stage — polls, Q&A, quizzes, and more." />
 
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Jua">
     <link rel="stylesheet" href="/style.css">
@@ -46,16 +46,348 @@
 </head>
 
 <body>
-    Stage Connect
+    <!-- Toast container -->
+    <div id="toast-container" aria-live="polite"></div>
+
+    <!-- Theme Picker Modal -->
+    <div id="theme-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Choose Theme" hidden>
+        <div class="modal-box">
+            <div class="modal-header">
+                <span class="modal-title">Choose Theme</span>
+                <button class="modal-close" id="theme-modal-close" aria-label="Close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+            <div class="theme-grid">
+                <button class="theme-swatch" data-theme="classic" title="Classic">
+                    <span class="swatch-color" style="background:#ccffcc"></span>
+                    <span class="swatch-label">Classic</span>
+                </button>
+                <button class="theme-swatch" data-theme="ng1" title="Not Green 1">
+                    <span class="swatch-color" style="background:#ffcccc"></span>
+                    <span class="swatch-label">Not Green 1</span>
+                </button>
+                <button class="theme-swatch" data-theme="ng2" title="Not Green 2">
+                    <span class="swatch-color" style="background:#ccccff"></span>
+                    <span class="swatch-label">Not Green 2</span>
+                </button>
+                <button class="theme-swatch" data-theme="ng3" title="Not Green 3">
+                    <span class="swatch-color" style="background:#ffffcc"></span>
+                    <span class="swatch-label">Not Green 3</span>
+                </button>
+                <button class="theme-swatch" data-theme="ng4" title="Not Green 4">
+                    <span class="swatch-color" style="background:#ffccff"></span>
+                    <span class="swatch-label">Not Green 4</span>
+                </button>
+                <button class="theme-swatch" data-theme="ng5" title="Not Green 5">
+                    <span class="swatch-color" style="background:#ccffff"></span>
+                    <span class="swatch-label">Not Green 5</span>
+                </button>
+                <button class="theme-swatch" data-theme="light" title="Really Really Light Green">
+                    <span class="swatch-color" style="background:#ffffff; border:1px solid #ddd"></span>
+                    <span class="swatch-label">Really Really Light Green</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Publish Modal -->
+    <div id="publish-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Publish Stage" hidden>
+        <div class="modal-box">
+            <div class="modal-header">
+                <span class="modal-title">Go Live</span>
+                <button class="modal-close" id="publish-modal-close" aria-label="Close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+            <div class="publish-body">
+                <p>Choose a URL slug for your live stage. Once published, your audience can join at:</p>
+                <div class="slug-preview">
+                    <span class="slug-base">live.stage.uwuapps.org/</span>
+                    <input type="text" id="slug-input" class="slug-input" placeholder="your-slug" maxlength="60"
+                        autocomplete="off" spellcheck="false" />
+                </div>
+                <p class="slug-hint">Only letters, numbers, and hyphens. This slug is released when you end the session.
+                </p>
+                <div class="publish-actions">
+                    <button class="btn btn-secondary" id="publish-cancel">Cancel</button>
+                    <button class="btn btn-primary" id="publish-confirm">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <polygon points="10,8 16,12 10,16" />
+                        </svg>
+                        Go Live
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Stage Modal -->
+    <div id="create-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Create Stage" hidden>
+        <div class="modal-box modal-box-wide">
+            <div class="modal-header">
+                <span class="modal-title">New Stage</span>
+                <button class="modal-close" id="create-modal-close" aria-label="Close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+            <div class="create-body">
+                <div class="form-group">
+                    <label class="form-label" for="stage-title">Stage Title</label>
+                    <input type="text" id="stage-title" class="form-input" placeholder="e.g. Company All-Hands 2025"
+                        maxlength="100" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="stage-desc">Description (optional)</label>
+                    <textarea id="stage-desc" class="form-input form-textarea" placeholder="What is this stage about?"
+                        maxlength="300"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Features</label>
+                    <div class="feature-checkboxes">
+                        <label class="feature-check"><input type="checkbox" value="poll" checked /> Polls</label>
+                        <label class="feature-check"><input type="checkbox" value="wordcloud" checked /> Word
+                            Cloud</label>
+                        <label class="feature-check"><input type="checkbox" value="qa" checked /> Q&amp;A</label>
+                        <label class="feature-check"><input type="checkbox" value="quiz" /> Quiz</label>
+                        <label class="feature-check"><input type="checkbox" value="survey" /> Survey</label>
+                        <label class="feature-check"><input type="checkbox" value="reaction" checked />
+                            Reactions</label>
+                        <label class="feature-check"><input type="checkbox" value="chat" /> Chat</label>
+                        <label class="feature-check"><input type="checkbox" value="comment" /> Comments</label>
+                    </div>
+                </div>
+                <div class="publish-actions">
+                    <button class="btn btn-secondary" id="create-cancel">Cancel</button>
+                    <button class="btn btn-primary" id="create-confirm">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                        Create Stage
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top bar -->
+    <header class="topbar glass">
+        <div class="topbar-brand">
+            <svg class="brand-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="4" y="24" width="32" height="4" rx="2" fill="var(--brand)" />
+                <rect x="8" y="6" width="24" height="16" rx="3" fill="var(--brand)" opacity="0.4" />
+                <circle cx="20" cy="14" r="4" fill="var(--brand)" />
+            </svg>
+            <span class="brand-name">Stage Connect</span>
+        </div>
+        <div class="topbar-actions">
+            <a href="https://donate.stripe.com/28o2akeAr3hv0DK6oo" target="_blank" rel="noopener noreferrer"
+                class="btn btn-ghost btn-icon" title="Buy Augy a Coffee">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+                    <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+                    <line x1="6" y1="1" x2="6" y2="4" />
+                    <line x1="10" y1="1" x2="10" y2="4" />
+                    <line x1="14" y1="1" x2="14" y2="4" />
+                </svg>
+                <span class="btn-label">Buy me a coffee</span>
+            </a>
+            <button class="btn btn-ghost btn-icon" id="theme-btn" title="Change Theme" aria-label="Change Theme">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="5" />
+                    <path
+                        d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                </svg>
+            </button>
+            <div id="auth-area"></div>
+        </div>
+    </header>
+
+    <!-- Auth views -->
+    <div id="view-auth" class="view" hidden>
+        <div class="auth-container">
+            <div class="auth-card glass">
+                <div class="auth-logo">
+                    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="4" y="24" width="32" height="4" rx="2" fill="var(--brand)" />
+                        <rect x="8" y="6" width="24" height="16" rx="3" fill="var(--brand)" opacity="0.4" />
+                        <circle cx="20" cy="14" r="4" fill="var(--brand)" />
+                    </svg>
+                    <h1 class="auth-title">Stage Connect</h1>
+                    <p class="auth-sub">Interactive presentations, live.</p>
+                </div>
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-tab="login">Sign In</button>
+                    <button class="auth-tab" data-tab="register">Register</button>
+                </div>
+                <form id="login-form" class="auth-form" novalidate>
+                    <div class="form-group">
+                        <label class="form-label" for="login-email">Email</label>
+                        <input type="email" id="login-email" class="form-input" placeholder="you@example.com" required
+                            autocomplete="email" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="login-password">Password</label>
+                        <input type="password" id="login-password" class="form-input" placeholder="••••••••" required
+                            autocomplete="current-password" />
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Sign In</button>
+                </form>
+                <form id="register-form" class="auth-form" novalidate hidden>
+                    <div class="form-group">
+                        <label class="form-label" for="reg-display">Display Name</label>
+                        <input type="text" id="reg-display" class="form-input" placeholder="Your Name" required
+                            maxlength="60" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="reg-username">Username</label>
+                        <input type="text" id="reg-username" class="form-input" placeholder="username" required
+                            maxlength="30" autocomplete="username" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="reg-email">Email</label>
+                        <input type="email" id="reg-email" class="form-input" placeholder="you@example.com" required
+                            autocomplete="email" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="reg-password">Password</label>
+                        <input type="password" id="reg-password" class="form-input" placeholder="Min. 8 characters"
+                            required minlength="8" autocomplete="new-password" />
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Create Account</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="view-dashboard" class="view" hidden>
+        <main class="dashboard">
+            <div class="dashboard-header">
+                <div>
+                    <h2 class="dashboard-title">My Stages</h2>
+                    <p class="dashboard-sub" id="welcome-msg"></p>
+                </div>
+                <button class="btn btn-primary" id="new-stage-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19" />
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    New Stage
+                </button>
+            </div>
+
+            <div id="stages-grid" class="stages-grid">
+                <div class="stages-empty" id="stages-empty">
+                    <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="10" y="50" width="60" height="8" rx="4" fill="var(--brand)" opacity="0.5" />
+                        <rect x="18" y="14" width="44" height="34" rx="6" fill="var(--brand)" opacity="0.2" />
+                        <circle cx="40" cy="31" r="8" fill="var(--brand)" opacity="0.5" />
+                    </svg>
+                    <p>No stages yet. Create your first one!</p>
+                    <button class="btn btn-primary" id="empty-new-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                        Create Stage
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Stage Editor -->
+    <div id="view-editor" class="view" hidden>
+        <div class="editor-layout">
+            <aside class="editor-sidebar glass">
+                <button class="btn btn-ghost btn-sm" id="back-to-dash">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <polyline points="15,18 9,12 15,6" />
+                    </svg>
+                    Dashboard
+                </button>
+                <div class="sidebar-stage-info">
+                    <h3 id="editor-stage-title"></h3>
+                    <span class="stage-status" id="editor-stage-status"></span>
+                </div>
+                <nav class="sidebar-nav" id="sidebar-nav">
+                    <!-- populated by JS based on features -->
+                </nav>
+                <div class="sidebar-footer">
+                    <button class="btn btn-primary btn-full" id="go-live-btn" hidden>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <polygon points="10,8 16,12 10,16" />
+                        </svg>
+                        Go Live
+                    </button>
+                    <button class="btn btn-danger btn-full" id="end-live-btn" hidden>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" />
+                        </svg>
+                        End Session
+                    </button>
+                    <div class="live-link-box" id="live-link-box" hidden>
+                        <p class="live-link-label">Live at:</p>
+                        <a id="live-link-url" class="live-link-url" href="#" target="_blank"
+                            rel="noopener noreferrer"></a>
+                        <button class="btn btn-ghost btn-sm" id="copy-link-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" />
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                            </svg>
+                            Copy Link
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <section class="editor-main">
+                <div id="panel-polls" class="editor-panel" data-panel="poll" hidden></div>
+                <div id="panel-wordcloud" class="editor-panel" data-panel="wordcloud" hidden></div>
+                <div id="panel-qa" class="editor-panel" data-panel="qa" hidden></div>
+                <div id="panel-quiz" class="editor-panel" data-panel="quiz" hidden></div>
+                <div id="panel-survey" class="editor-panel" data-panel="survey" hidden></div>
+                <div id="panel-reactions" class="editor-panel" data-panel="reaction" hidden></div>
+                <div id="panel-chat" class="editor-panel" data-panel="chat" hidden></div>
+                <div id="panel-comments" class="editor-panel" data-panel="comment" hidden></div>
+            </section>
+        </div>
+    </div>
 
     <script src="/script.js"></script>
 
     <script>
         if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.register('/sw.js');
+            navigator.serviceWorker.register('/sw.js');
         }
     </script>
-    
+
 </body>
 
 </html>

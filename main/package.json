@@ -1,0 +1,10 @@
+{
+    "name": "stage-connect-main",
+    "version": "1.0.0",
+    "description": "Stage Connect — presenter dashboard",
+    "private": true,
+    "dependencies": {
+        "@supabase/supabase-js": "^2.45.0",
+        "bcryptjs": "^2.4.3"
+    }
+}

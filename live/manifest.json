@@ -1,7 +1,7 @@
 {
     "name": "Stage Connect Live by UwU Apps",
     "short_name": "Stage Connect Live",
-    "description": "An interactive presentation platform inspired by Pigeonhole Live and Mentimeter.",
+    "description": "Join a live interactive stage — polls, Q&A, quizzes, and more.",
     "icons": [{
             "src": "SCL-192.png",
             "type": "image/png",
@@ -31,7 +31,7 @@
     "background_color": "#cfc",
     "display": "standalone",
     "display_override": ["fullscreen", "minimal-ui", "window-controls-overlay"],
-    "orientation": "portrait-primary",
+    "orientation": "portrait",
     "id": "stage-connect-live",
     "dir": "ltr",
     "scope": "/",

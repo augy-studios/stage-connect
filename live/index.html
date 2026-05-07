@@ -22,12 +22,12 @@
     <meta charset="utf-8">
     <title>Stage Connect Live | UwU Apps</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="An interactive presentation platform inspired by Pigeonhole Live and Mentimeter.">
+    <meta name="description" content="Join a live interactive stage — polls, Q&A, quizzes, and more.">
 
     <meta property="og:type" content="website">
     <meta property="og:title" content="Stage Connect Live | UwU Apps" />
     <meta property="og:site_name" content="UwU Apps" />
-    <meta property="og:description" content="An interactive presentation platform inspired by Pigeonhole Live and Mentimeter." />
+    <meta property="og:description" content="Join a live interactive stage — polls, Q&A, quizzes, and more." />
 
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Jua">
     <link rel="stylesheet" href="/style.css">
@@ -46,16 +46,37 @@
 </head>
 
 <body>
-    Stage Connect Live
-
-    <script src="/script.js"></script>
+    <div class="card">
+        <div class="logo">
+            <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
+                <rect x="4" y="24" width="32" height="4" rx="2" fill="#ccffcc" />
+                <rect x="8" y="6" width="24" height="16" rx="3" fill="#ccffcc" opacity="0.4" />
+                <circle cx="20" cy="14" r="4" fill="#ccffcc" />
+            </svg>
+            <span style="font-size:1.2rem;color:#1a2e1a">Stage Connect Live</span>
+        </div>
+        <h1>Join a Stage</h1>
+        <p>Enter the stage slug or scan the QR code from your presenter.</p>
+        <input id="slug-input" placeholder="stage-slug" autocomplete="off" spellcheck="false" />
+        <button onclick="go()">Join Stage</button>
+    </div>
 
     <script>
         if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.register('/sw.js');
+            navigator.serviceWorker.register('/sw.js');
         }
+
+        function go() {
+            const slug = document.getElementById('slug-input').value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-')
+                .replace(/-+/g, '-').replace(/^-|-$/g, '');
+            if (slug) window.location.href = '/' + slug;
+        }
+
+        document.getElementById('slug-input').addEventListener('keydown', e => {
+            if (e.key === 'Enter') go();
+        });
     </script>
-    
+
 </body>
 
 </html>

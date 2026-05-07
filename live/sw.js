@@ -4,7 +4,9 @@ const ASSETS = [
   "/",
   "/index.html",
   "/style.css",
-  "/app.js",
+  "/live.html",
+  "/live.css",
+  "/live.js",
   "/SCL-main.png",
   "/favicon.ico",
   "/manifest.json"
