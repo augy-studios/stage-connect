@@ -132,6 +132,35 @@
         </div>
     </div>
 
+    <!-- End Session Modal -->
+    <div id="end-session-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="End Session" hidden>
+        <div class="modal-box">
+            <div class="modal-header">
+                <span class="modal-title">End Session</span>
+                <button class="modal-close" id="end-session-modal-close" aria-label="Close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+            <div class="publish-body">
+                <p>Are you sure you want to end this session? The slug will be released and your audience will lose access.</p>
+                <div class="publish-actions">
+                    <button class="btn btn-secondary" id="end-session-cancel">Cancel</button>
+                    <button class="btn btn-danger" id="end-session-confirm">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" />
+                        </svg>
+                        End Session
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Create Stage Modal -->
     <div id="create-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Create Stage" hidden>
         <div class="modal-box modal-box-wide">
