@@ -9,27 +9,27 @@
         },
         {
             "src": "^/$",
-            "dest": "/public/index.html"
+            "dest": "/index.html"
         },
         {
             "src": "^/live\\.html$",
-            "dest": "/public/live.html"
+            "dest": "/live.html"
         },
         {
             "src": "^/live\\.css$",
-            "dest": "/public/live.css"
+            "dest": "/live.css"
         },
         {
             "src": "^/live\\.js$",
-            "dest": "/public/live.js"
+            "dest": "/live.js"
         },
         {
             "src": "^/manifest\\.json$",
-            "dest": "/public/manifest.json"
+            "dest": "/manifest.json"
         },
         {
             "src": "^/[a-zA-Z0-9_-]+$",
-            "dest": "/public/live.html"
+            "dest": "/live.html"
         }
     ]
 }
