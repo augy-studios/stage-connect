@@ -48,6 +48,29 @@
 <body>
     <div id="toast-container" aria-live="polite"></div>
 
+    <!-- Theme Picker Modal -->
+    <div id="theme-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Choose Theme" hidden>
+        <div class="modal-box">
+            <div class="modal-header">
+                <span class="modal-title">Choose Theme</span>
+                <button class="modal-close" id="theme-modal-close" aria-label="Close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+            <div class="theme-grid">
+                <button class="theme-swatch" data-theme="classic" title="Classic"><span class="swatch-color" style="background:#ccffcc"></span><span class="swatch-label">Classic</span></button>
+                <button class="theme-swatch" data-theme="ng1" title="Not Green 1"><span class="swatch-color" style="background:#ffcccc"></span><span class="swatch-label">Not Green 1</span></button>
+                <button class="theme-swatch" data-theme="ng2" title="Not Green 2"><span class="swatch-color" style="background:#ccccff"></span><span class="swatch-label">Not Green 2</span></button>
+                <button class="theme-swatch" data-theme="ng3" title="Not Green 3"><span class="swatch-color" style="background:#ffffcc"></span><span class="swatch-label">Not Green 3</span></button>
+                <button class="theme-swatch" data-theme="ng4" title="Not Green 4"><span class="swatch-color" style="background:#ffccff"></span><span class="swatch-label">Not Green 4</span></button>
+                <button class="theme-swatch" data-theme="ng5" title="Not Green 5"><span class="swatch-color" style="background:#ccffff"></span><span class="swatch-label">Not Green 5</span></button>
+                <button class="theme-swatch" data-theme="light" title="Really Really Light Green"><span class="swatch-color" style="background:#ffffff;border:1px solid #ddd"></span><span class="swatch-label">Really Really Light Green</span></button>
+            </div>
+        </div>
+    </div>
+
     <!-- Top bar -->
     <header class="topbar glass">
         <div class="topbar-brand">
@@ -59,6 +82,23 @@
             <span class="brand-name">Stage Connect <span class="live-badge">LIVE</span></span>
         </div>
         <div id="stage-title-display" class="stage-title-display"></div>
+        <div class="topbar-actions">
+            <a href="https://donate.stripe.com/28o2akeAr3hv0DK6oo" target="_blank" rel="noopener noreferrer"
+                class="btn btn-ghost btn-icon" title="Buy Augy a Coffee">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+                    <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+                    <line x1="6" y1="1" x2="6" y2="4" /><line x1="10" y1="1" x2="10" y2="4" /><line x1="14" y1="1" x2="14" y2="4" />
+                </svg>
+                <span class="btn-label">Buy me a coffee</span>
+            </a>
+            <button class="btn btn-ghost btn-icon" id="theme-btn" title="Change Theme" aria-label="Change Theme">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="5" />
+                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                </svg>
+            </button>
+        </div>
     </header>
 
     <!-- Name prompt -->

@@ -50,8 +50,41 @@ const FEATURE_META = {
     }
 };
 
+// ───── THEME ─────
+function initTheme() {
+    const saved = localStorage.getItem('sc-theme') || 'classic';
+    applyTheme(saved);
+}
+
+function applyTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    localStorage.setItem('sc-theme', t);
+    document.querySelectorAll('.theme-swatch').forEach(s => {
+        s.classList.toggle('active', s.dataset.theme === t);
+    });
+}
+
+function bindThemeModal() {
+    const modal = document.getElementById('theme-modal');
+    document.getElementById('theme-btn').addEventListener('click', () => {
+        modal.hidden = false;
+        initTheme();
+    });
+    document.getElementById('theme-modal-close').addEventListener('click', () => {
+        modal.hidden = true;
+    });
+    modal.addEventListener('click', e => {
+        if (e.target === modal) modal.hidden = true;
+    });
+    document.querySelectorAll('.theme-swatch').forEach(s => {
+        s.addEventListener('click', () => applyTheme(s.dataset.theme));
+    });
+}
+
 // ───── INIT ─────
 document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
+    bindThemeModal();
     state.playerToken = getOrCreateToken();
     state.slug = getSlug();
 
