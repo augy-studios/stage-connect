@@ -540,7 +540,7 @@ const panelBuilders = {
             {
                 type: 'clap',
                 label: 'Clap',
-                svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v1m0 0v1m0-1h1m-1 0H7M5 8l1-1m1 1-1-1M5 8l1 1M5 8H4m9-5v2m0 0v2m0-2h2m-2 0h-2m3 8-4-4-4 4"/><path d="M12 19a7 7 0 0 0 7-7"/></svg>'
+                svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 12V7a2 2 0 0 1 4 0"/><path d="M12 7V5a2 2 0 0 1 4 0v5"/><path d="M16 6a2 2 0 0 1 4 0v6a8 8 0 0 1-8 8h-1a8 8 0 0 1-8-8v-3a2 2 0 0 1 4 0v2"/><path d="M8 14V9a2 2 0 0 1 4 0v3"/></svg>'
             },
             {
                 type: 'wow',

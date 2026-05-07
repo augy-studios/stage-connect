@@ -10,6 +10,7 @@ const state = {
     votedQA: {},
     votedComments: {},
     answeredQuiz: {},
+    answeredSurveys: {},
     realtimeChannel: null,
     activeTab: null
 };
@@ -153,6 +154,7 @@ const liveRefreshers = {
     },
     chat(panel, stage) { loadLiveChat(stage.id); },
     comment(panel, stage) { loadLiveComments(stage.id, panel); },
+    survey(panel, stage) { loadLiveSurveys(panel, stage.id); },
     quiz(panel, stage) {
         if (document.getElementById('quiz-timer')) return;
         loadLiveQuiz(panel, stage.id);
@@ -265,8 +267,9 @@ async wordcloud(panel, stage) {
                 loadLiveQuiz(panel, stage.id);
             },
 
-            survey(panel, stage) {
-                panel.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">Survey coming soon in this session.</div>';
+            async survey(panel, stage) {
+                panel.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">Loading surveys...</div>';
+                loadLiveSurveys(panel, stage.id);
             },
 
             async reaction(panel, stage) {
@@ -283,7 +286,7 @@ async wordcloud(panel, stage) {
                         {
                             type: 'clap',
                             label: 'Clap',
-                            svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v1m0 0v1m0-1h1m-1 0H7M5 8l1-1m1 1-1-1M5 8l1 1M5 8H4"/></svg>'
+                            svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 12V7a2 2 0 0 1 4 0"/><path d="M12 7V5a2 2 0 0 1 4 0v5"/><path d="M16 6a2 2 0 0 1 4 0v6a8 8 0 0 1-8 8h-1a8 8 0 0 1-8-8v-3a2 2 0 0 1 4 0v2"/><path d="M8 14V9a2 2 0 0 1 4 0v3"/></svg>'
                         },
                         {
                             type: 'wow',
@@ -518,6 +521,58 @@ async function sendChat(stageId) {
     loadLiveChat(stageId);
 }
 
+async function loadLiveSurveys(panel, stageId) {
+    const data = await liveGet(`/api/interactions/survey?action=list&stage_id=${stageId}`);
+    const active = (data.surveys || []).filter(s => s.is_active);
+    if (!active.length) {
+        panel.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">No active surveys right now. Check back soon!</div>';
+        return;
+    }
+    panel.innerHTML = '';
+    active.forEach(survey => {
+        const alreadyDone = state.answeredSurveys?.[survey.id];
+        const card = document.createElement('div');
+        card.className = 'panel-card';
+        if (alreadyDone) {
+            card.innerHTML = `<div style="text-align:center;padding:16px;color:var(--text-muted)"><strong>${escHtml(survey.title)}</strong><p style="margin-top:8px">Response submitted. Thank you!</p></div>`;
+        } else {
+            const questions = survey.questions || [];
+            card.innerHTML = `
+        <div class="poll-question">${escHtml(survey.title)}</div>
+        <div id="survey-form-${survey.id}">
+          ${questions.map((q, i) => `
+            <div class="form-group" style="margin-top:12px">
+              <label class="form-label">${escHtml(q.question)}</label>
+              <input class="form-input" id="sq-${survey.id}-${i}" placeholder="Your answer..." />
+            </div>`).join('')}
+        </div>
+        <button class="btn btn-primary" style="margin-top:12px;width:100%" onclick="submitSurvey('${survey.id}',${questions.length})">Submit</button>`;
+        }
+        panel.appendChild(card);
+    });
+}
+
+async function submitSurvey(surveyId, questionCount) {
+    const answers = [];
+    for (let i = 0; i < questionCount; i++) {
+        const el = document.getElementById(`sq-${surveyId}-${i}`);
+        answers.push(el ? el.value.trim() : '');
+    }
+    if (answers.every(a => !a)) return toast('Please answer at least one question.', 'error');
+    const result = await livePost('/api/interactions/survey', {
+        action: 'respond',
+        survey_id: surveyId,
+        responder_token: state.playerToken,
+        answers
+    });
+    if (result.error) return toast(result.error === 'Already responded' ? 'You already submitted this survey.' : 'Failed to submit. Please try again.', 'error');
+    if (!state.answeredSurveys) state.answeredSurveys = {};
+    state.answeredSurveys[surveyId] = true;
+    toast('Survey submitted! Thank you.', 'success');
+    const panel = document.querySelector('.live-panel[data-panel="survey"]');
+    if (panel) loadLiveSurveys(panel, state.stage.id);
+}
+
 async function loadLiveQuiz(panel, stageId) {
     const data = await liveGet(`/api/interactions/quiz?stageId=${stageId}`);
     const active = (data.questions || []).filter(q => q.is_active && !state.answeredQuiz[q.id]);
@@ -680,5 +735,6 @@ window.voteQA = voteQA;
 window.sendReaction = sendReaction;
 window.sendChat = sendChat;
 window.answerQuiz = answerQuiz;
+window.submitSurvey = submitSurvey;
 window.submitComment = submitComment;
 window.voteComment = voteComment;
