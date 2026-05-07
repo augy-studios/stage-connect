@@ -1,11 +1,11 @@
-const CACHE = "template-offline-v1";
+const CACHE = "stage-connect-offline-v1";
 
 const ASSETS = [
   "/",
   "/index.html",
   "/style.css",
   "/app.js",
-  "/templateicon1.png",
+  "/SCL-main.png",
   "/favicon.ico",
   "/manifest.json"
 ];
