@@ -1030,8 +1030,8 @@ function updateLiveButtons() {
         document.getElementById('qr-code-btn').onclick = () => {
             const modal = document.getElementById('qr-modal');
             document.getElementById('qr-modal-url').textContent = url;
-            const displaySize = 320;
-            const margin = 20;
+            const displaySize = 220;
+            const margin = 16;
             const qrSize = displaySize - margin * 2;
 
             // Render QR onto an off-screen canvas so QRious controls its own sizing
@@ -1051,7 +1051,7 @@ function updateLiveButtons() {
             const logo = new Image();
             logo.src = '/SCL-main.png';
             logo.onload = () => {
-                const logoSize = 64;
+                const logoSize = 44;
                 const x = (displaySize - logoSize) / 2;
                 const y = (displaySize - logoSize) / 2;
                 const pad = 4;
