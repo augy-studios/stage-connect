@@ -1027,6 +1027,14 @@ function updateLiveButtons() {
             navigator.clipboard.writeText(url);
             toast('Link copied!', 'success');
         };
+        document.getElementById('qr-code-btn').onclick = () => {
+            const modal = document.getElementById('qr-modal');
+            document.getElementById('qr-modal-url').textContent = url;
+            new QRious({ element: document.getElementById('qr-canvas'), value: url, size: 220, padding: 16 });
+            modal.hidden = false;
+            document.getElementById('qr-modal-close').onclick = () => { modal.hidden = true; };
+            modal.onclick = e => { if (e.target === modal) modal.hidden = true; };
+        };
     } else {
         linkBox.hidden = true;
     }

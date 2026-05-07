@@ -921,6 +921,26 @@ select {
   margin-bottom: 8px;
 }
 
+.qr-modal-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 24px 22px;
+}
+
+.qr-modal-body canvas {
+  border-radius: 10px;
+  display: block;
+}
+
+.qr-modal-url {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  word-break: break-all;
+  text-align: center;
+}
+
 .editor-main {
   flex: 1;
   overflow-y: auto;
