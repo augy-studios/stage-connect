@@ -19,12 +19,21 @@ module.exports = async (req, res) => {
             stageId
         } = req.query;
         const {
-            data
+            data: questions
         } = await sb.from('uwustage_quiz').select('id, question, options, correct_option_id, points, time_limit_seconds, is_active, created_at').eq('stage_id', stageId).order('created_at', {
             ascending: true
         });
+        if (!questions?.length) return res.status(200).json({ questions: [] });
+        const { data: answers } = await sb.from('uwustage_quiz_answers')
+            .select('quiz_id, chosen_option_id')
+            .in('quiz_id', questions.map(q => q.id));
+        const counts = {};
+        (answers || []).forEach(a => {
+            if (!counts[a.quiz_id]) counts[a.quiz_id] = {};
+            counts[a.quiz_id][a.chosen_option_id] = (counts[a.quiz_id][a.chosen_option_id] || 0) + 1;
+        });
         return res.status(200).json({
-            questions: data || []
+            questions: questions.map(q => ({ ...q, answer_counts: counts[q.id] || {} }))
         });
     }
 

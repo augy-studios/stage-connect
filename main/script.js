@@ -853,10 +853,22 @@ function renderQuiz(panel, questions, stage) {
     questions.forEach(q => {
         const card = document.createElement('div');
         card.className = 'panel-card';
+        const counts = q.answer_counts || {};
+        const totalAnswers = Object.values(counts).reduce((s, n) => s + n, 0);
         card.innerHTML = `
       <div class="poll-question">${escHtml(q.question)}</div>
-      <div class="poll-options">${(q.options || []).map(o => `<div class="poll-option-row" style="${o.id === q.correct_option_id ? 'border-color:var(--success)' : ''}"><span class="poll-option-text">${escHtml(o.text)}</span>${o.id === q.correct_option_id ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;color:var(--success)"><polyline points="20,6 9,17 4,12"/></svg>' : ''}</div>`).join('')}</div>
-      <div class="poll-actions"><span style="font-size:0.8rem;color:var(--text-faint)">${q.points} pts · ${q.time_limit_seconds}s</span>
+      <div class="poll-options">${(q.options || []).map(o => {
+            const n = counts[o.id] || 0;
+            const pct = totalAnswers ? Math.round(n / totalAnswers * 100) : 0;
+            const isCorrect = o.id === q.correct_option_id;
+            return `<div class="poll-option-row" style="${isCorrect ? 'border-color:var(--success)' : ''}">
+              <span class="poll-option-text">${escHtml(o.text)}</span>
+              ${isCorrect ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0;color:var(--success)"><polyline points="20,6 9,17 4,12"/></svg>' : ''}
+              <div class="poll-bar-wrap" style="flex:1;margin:0 8px"><div class="poll-bar" style="width:${pct}%"></div></div>
+              <span class="poll-count">${n}</span>
+            </div>`;
+        }).join('')}</div>
+      <div class="poll-actions"><span style="font-size:0.8rem;color:var(--text-faint)">${q.points} pts · ${q.time_limit_seconds}s · ${totalAnswers} answer${totalAnswers !== 1 ? 's' : ''}</span>
         <button class="toggle-pill ${q.is_active ? 'on' : ''}" data-quiz-id="${q.id}" data-action="toggle">${q.is_active ? 'Active' : 'Activate'}</button>
       </div>`;
         card.querySelector('[data-action]').onclick = async () => {
@@ -916,27 +928,43 @@ function openNewQuizForm(panel, stage) {
 async function loadSurvey(panel, stage) {
     try {
         const data = await apiGet(`/api/interactions/survey?action=list&stage_id=${stage.id}`, true);
-        renderSurvey(panel, data.surveys || [], stage);
+        const surveys = data.surveys || [];
+        const responseSets = await Promise.all(
+            surveys.map(s => apiGet(`/api/interactions/survey?action=responses&survey_id=${s.id}`, true).then(r => r.responses || []).catch(() => []))
+        );
+        renderSurvey(panel, surveys, responseSets, stage);
     } catch {
         toast('Failed to load surveys.', 'error');
     }
 }
 
-function renderSurvey(panel, surveys, stage) {
+function renderSurvey(panel, surveys, responseSets, stage) {
     const list = panel.querySelector('#survey-list');
     if (!surveys.length) {
         list.innerHTML = `<div class="empty-panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg><p>No survey questions yet. Create one above.</p></div>`;
         return;
     }
     list.innerHTML = '';
-    surveys.forEach(survey => {
+    surveys.forEach((survey, si) => {
+        const responses = responseSets[si] || [];
+        const qs = survey.questions || [];
         const card = document.createElement('div');
         card.className = 'panel-card';
-        const qs = survey.questions || [];
+
+        const responsesHtml = qs.length && responses.length ? qs.map((q, qi) => {
+            const answers = responses.map(r => (r.answers || [])[qi]).filter(a => a);
+            if (!answers.length) return '';
+            return `<div style="margin-top:10px">
+              <div style="font-size:0.8rem;font-weight:600;color:var(--text-muted);margin-bottom:4px">${escHtml(q.question)}</div>
+              ${answers.map(a => `<div style="font-size:0.82rem;padding:4px 8px;background:var(--bg-hover);border-radius:6px;margin-bottom:3px">${escHtml(a)}</div>`).join('')}
+            </div>`;
+        }).join('') : '';
+
         card.innerHTML = `
       <div class="poll-question">${escHtml(survey.title)}</div>
-      <div style="font-size:0.82rem;color:var(--text-muted);margin:4px 0 10px">${qs.length} question${qs.length !== 1 ? 's' : ''}</div>
-      <div class="poll-actions">
+      <div style="font-size:0.82rem;color:var(--text-muted);margin:4px 0 10px">${qs.length} question${qs.length !== 1 ? 's' : ''} · ${responses.length} response${responses.length !== 1 ? 's' : ''}</div>
+      ${responsesHtml ? `<div class="survey-responses">${responsesHtml}</div>` : ''}
+      <div class="poll-actions" style="margin-top:12px">
         <button class="toggle-pill ${survey.is_active ? 'on' : ''}" data-survey-id="${survey.id}" data-action="toggle">${survey.is_active ? 'Active' : 'Inactive'}</button>
         <button class="toggle-pill" data-survey-id="${survey.id}" data-action="delete" style="color:var(--danger)">Delete</button>
       </div>`;
