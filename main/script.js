@@ -506,6 +506,7 @@ const panelBuilders = {
         </button>
       </div>
       <div id="quiz-list"></div>`;
+        panel.querySelector('#new-quiz-btn').onclick = () => openNewQuizForm(panel, stage);
         loadQuiz(panel, stage);
     },
 
@@ -518,6 +519,8 @@ const panelBuilders = {
         </button>
       </div>
       <div id="survey-list"></div>`;
+        panel.querySelector('#new-survey-btn').onclick = () => openNewSurveyForm(panel, stage);
+        loadSurvey(panel, stage);
     },
 
     reaction(panel, stage) {
@@ -862,7 +865,6 @@ function renderQuiz(panel, questions, stage) {
         };
         list.appendChild(card);
     });
-    panel.querySelector('#new-quiz-btn').onclick = () => openNewQuizForm(panel, stage);
 }
 
 function openNewQuizForm(panel, stage) {
@@ -902,6 +904,75 @@ function openNewQuizForm(panel, stage) {
             toast('Quiz question added!', 'success');
         } catch {
             toast('Failed.', 'error');
+        }
+    };
+}
+
+async function loadSurvey(panel, stage) {
+    try {
+        const data = await apiGet(`/api/interactions/survey?action=list&stage_id=${stage.id}`, true);
+        renderSurvey(panel, data.surveys || [], stage);
+    } catch {
+        toast('Failed to load surveys.', 'error');
+    }
+}
+
+function renderSurvey(panel, surveys, stage) {
+    const list = panel.querySelector('#survey-list');
+    if (!surveys.length) {
+        list.innerHTML = `<div class="empty-panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg><p>No survey questions yet. Create one above.</p></div>`;
+        return;
+    }
+    list.innerHTML = '';
+    surveys.forEach(survey => {
+        const card = document.createElement('div');
+        card.className = 'panel-card';
+        const qs = survey.questions || [];
+        card.innerHTML = `
+      <div class="poll-question">${escHtml(survey.title)}</div>
+      <div style="font-size:0.82rem;color:var(--text-muted);margin:4px 0 10px">${qs.length} question${qs.length !== 1 ? 's' : ''}</div>
+      <div class="poll-actions">
+        <button class="toggle-pill ${survey.is_active ? 'on' : ''}" data-survey-id="${survey.id}" data-action="toggle">${survey.is_active ? 'Active' : 'Inactive'}</button>
+        <button class="toggle-pill" data-survey-id="${survey.id}" data-action="delete" style="color:var(--danger)">Delete</button>
+      </div>`;
+        card.querySelector('[data-action="toggle"]').onclick = async () => {
+            try {
+                await apiPost('/api/interactions/survey', { action: 'toggle', survey_id: survey.id, is_active: !survey.is_active, stage_id: stage.id }, true);
+                loadSurvey(panel, stage);
+            } catch { toast('Action failed.', 'error'); }
+        };
+        card.querySelector('[data-action="delete"]').onclick = async () => {
+            if (!confirm('Delete this survey?')) return;
+            try {
+                await apiPost('/api/interactions/survey', { action: 'delete', survey_id: survey.id, stage_id: stage.id }, true);
+                loadSurvey(panel, stage);
+            } catch { toast('Action failed.', 'error'); }
+        };
+        list.appendChild(card);
+    });
+}
+
+function openNewSurveyForm(panel, stage) {
+    const form = document.createElement('div');
+    form.className = 'panel-card';
+    form.innerHTML = `
+    <div class="form-group"><label class="form-label">Survey Title</label><input class="form-input" id="nsv-title" placeholder="e.g. Session feedback" /></div>
+    <div class="form-group"><label class="form-label">Questions (one per line)</label><textarea class="form-input form-textarea" id="nsv-questions" placeholder="How useful was this session?\nWhat could be improved?"></textarea></div>
+    <div class="publish-actions"><button class="btn btn-secondary" id="nsv-cancel">Cancel</button><button class="btn btn-primary" id="nsv-submit">Create Survey</button></div>`;
+    panel.querySelector('#survey-list').prepend(form);
+    form.querySelector('#nsv-cancel').onclick = () => form.remove();
+    form.querySelector('#nsv-submit').onclick = async () => {
+        const title = form.querySelector('#nsv-title').value.trim();
+        const questionLines = form.querySelector('#nsv-questions').value.trim().split('\n').map(s => s.trim()).filter(Boolean);
+        if (!title || !questionLines.length) return toast('Title and at least one question required.', 'error');
+        const questions = questionLines.map(q => ({ question: q, type: 'text' }));
+        try {
+            await apiPost('/api/interactions/survey', { action: 'create', stage_id: stage.id, title, questions }, true);
+            form.remove();
+            loadSurvey(panel, stage);
+            toast('Survey created!', 'success');
+        } catch {
+            toast('Failed to create survey.', 'error');
         }
     };
 }

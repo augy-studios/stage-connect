@@ -343,12 +343,16 @@ async wordcloud(panel, stage) {
 async function castVote(pollId, optionId, card) {
     if (state.votedPolls[pollId]) return;
     state.votedPolls[pollId] = optionId;
-    await livePost('/api/interactions/poll', {
+    const result = await livePost('/api/interactions/poll', {
         action: 'vote',
         pollId,
         optionId,
         voterToken: state.playerToken
     });
+    if (result.error) {
+        delete state.votedPolls[pollId];
+        return toast('Vote failed. Please try again.', 'error');
+    }
     toast('Vote cast!', 'success');
     // Refresh this poll
     const data = await liveGet(`/api/interactions/poll?stageId=${state.stage.id}`);

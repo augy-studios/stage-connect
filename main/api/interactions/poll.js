@@ -61,6 +61,13 @@ module.exports = async (req, res) => {
             if (error) return res.status(500).json({
                 error: 'Vote failed'
             });
+            // Recount votes from the votes table and update the poll options
+            const { data: pollRow } = await sb.from('uwustage_polls').select('options').eq('id', pollId).single();
+            const { data: allVotes } = await sb.from('uwustage_poll_votes').select('option_id').eq('poll_id', pollId);
+            const voteCounts = {};
+            (allVotes || []).forEach(v => { voteCounts[v.option_id] = (voteCounts[v.option_id] || 0) + 1; });
+            const updatedOptions = (pollRow?.options || []).map(o => ({ ...o, votes: voteCounts[o.id] || 0 }));
+            await sb.from('uwustage_polls').update({ options: updatedOptions }).eq('id', pollId);
             return res.status(200).json({
                 success: true
             });

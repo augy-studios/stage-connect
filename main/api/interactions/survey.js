@@ -78,8 +78,8 @@ export default async function handler(req, res) {
     return res.status(201).json({ response: data });
   }
 
-  // --- PUT: toggle active ---
-  if (req.method === 'PUT' && action === 'toggle') {
+  // --- PUT or POST toggle: toggle active ---
+  if ((req.method === 'PUT' || req.method === 'POST') && action === 'toggle') {
     const session = await getSession(req, supabase);
     if (!session) return res.status(401).json({ error: 'Unauthorized' });
     const { is_active } = req.body;
@@ -93,11 +93,12 @@ export default async function handler(req, res) {
     return res.status(200).json({ survey: data });
   }
 
-  // --- DELETE: delete survey ---
-  if (req.method === 'DELETE') {
+  // --- DELETE or POST delete: delete survey ---
+  if (req.method === 'DELETE' || (req.method === 'POST' && action === 'delete')) {
     const session = await getSession(req, supabase);
     if (!session) return res.status(401).json({ error: 'Unauthorized' });
-    const { error } = await supabase.from('uwustage_surveys').delete().eq('id', survey_id);
+    const sid = survey_id || req.body?.survey_id;
+    const { error } = await supabase.from('uwustage_surveys').delete().eq('id', sid);
     if (error) return res.status(500).json({ error: error.message });
     return res.status(200).json({ success: true });
   }
