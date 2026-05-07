@@ -18,6 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
     bindThemeModal();
     bindAuthUI();
     checkSession();
+    document.querySelector('.topbar-brand').addEventListener('click', () => {
+        if (!state.user) showView('landing');
+        else showView('dashboard');
+    });
 });
 
 // ───── THEME ─────
@@ -178,7 +182,8 @@ async function doRegister({
 async function checkSession() {
     const token = localStorage.getItem('sc-token');
     if (!token) {
-        showView('auth');
+        renderAuthChip();
+        showView('landing');
         return;
     }
     state.token = token;
@@ -186,7 +191,8 @@ async function checkSession() {
         const data = await apiGet('/api/auth/me', true);
         if (data.error) {
             localStorage.removeItem('sc-token');
-            showView('auth');
+            renderAuthChip();
+            showView('landing');
             return;
         }
         state.user = data.user;
@@ -194,7 +200,8 @@ async function checkSession() {
         showView('dashboard');
         loadStages();
     } catch {
-        showView('auth');
+        renderAuthChip();
+        showView('landing');
     }
 }
 
@@ -206,7 +213,7 @@ function doLogout() {
     state.stages = [];
     state.currentStage = null;
     renderAuthChip();
-    showView('auth');
+    showView('landing');
     toast('Signed out.', 'info');
 }
 
@@ -214,7 +221,7 @@ function doLogout() {
 function renderAuthChip() {
     const area = document.getElementById('auth-area');
     if (!state.user) {
-        area.innerHTML = '';
+        area.innerHTML = '<button class="btn btn-primary btn-sm" onclick="openSignIn()">Sign In</button>';
         return;
     }
     const initials = ((state.user.display_name || state.user.username || '?')[0]).toUpperCase();
@@ -249,9 +256,27 @@ function renderAuthChip() {
 
 // ───── VIEWS ─────
 function showView(name) {
-    ['auth', 'dashboard', 'editor'].forEach(v => {
+    ['landing', 'auth', 'dashboard', 'editor'].forEach(v => {
         document.getElementById('view-' + v).hidden = (v !== name);
     });
+}
+
+function switchAuthTab(tabName) {
+    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+    const tab = document.querySelector(`.auth-tab[data-tab="${tabName}"]`);
+    if (tab) tab.classList.add('active');
+    document.getElementById('login-form').hidden = tabName !== 'login';
+    document.getElementById('register-form').hidden = tabName !== 'register';
+}
+
+function openSignIn() {
+    switchAuthTab('login');
+    showView('auth');
+}
+
+function openGetStarted() {
+    switchAuthTab('register');
+    showView('auth');
 }
 
 // ───── DASHBOARD ─────
