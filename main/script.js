@@ -8,7 +8,8 @@ const state = {
     stages: [],
     currentStage: null,
     activePanel: null,
-    realtimeChannels: []
+    realtimeChannels: [],
+    editorInterval: null
 };
 
 // ───── INIT ─────
@@ -384,7 +385,28 @@ function openEditor(stage) {
     updateStatusBadge();
     buildSidebar(stage.features || []);
     buildPanels(stage.features || []);
+    if (stage.features?.length) activatePanel(stage.features[0]);
     updateLiveButtons();
+    startEditorPolling(stage);
+}
+
+function startEditorPolling(stage) {
+    if (state.editorInterval) clearInterval(state.editorInterval);
+    state.editorInterval = setInterval(() => {
+        const f = state.activePanel;
+        const panel = document.querySelector(`.editor-panel[data-panel="${f}"]`);
+        if (!panel) return;
+        const refreshers = {
+            poll: () => { if (!panel.querySelector('#nq-question')) loadPolls(panel, stage); },
+            wordcloud: () => loadWordCloud(panel, stage),
+            qa: () => loadQA(panel, stage),
+            reaction: () => loadReactions(stage),
+            chat: () => loadChat(panel, stage),
+            comment: () => loadComments(panel, stage),
+            quiz: () => loadQuiz(panel, stage),
+        };
+        if (refreshers[f]) refreshers[f]();
+    }, 5000);
 }
 
 function updateStatusBadge() {
@@ -407,9 +429,8 @@ function buildSidebar(features) {
         btn.addEventListener('click', () => activatePanel(f));
         nav.appendChild(btn);
     });
-    if (features.length) activatePanel(features[0]);
-
     document.getElementById('back-to-dash').onclick = () => {
+        if (state.editorInterval) { clearInterval(state.editorInterval); state.editorInterval = null; }
         showView('dashboard');
         loadStages();
     };

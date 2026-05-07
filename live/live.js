@@ -10,7 +10,8 @@ const state = {
     votedQA: {},
     votedComments: {},
     answeredQuiz: {},
-    realtimeChannel: null
+    realtimeChannel: null,
+    activeTab: null
 };
 
 const FEATURE_META = {
@@ -117,7 +118,50 @@ function initLiveUI(stage) {
     buildTabs(features);
     buildLivePanels(features, stage);
     if (features.length) activateTab(features[0]);
-    // initRealtime(stage.id);
+    startLivePolling(stage);
+}
+
+const liveRefreshers = {
+    poll(panel, stage) {
+        liveGet(`/api/interactions/poll?stageId=${stage.id}`).then(data => {
+            (data.polls || []).filter(p => p.is_active).forEach(poll => {
+                const hasVoted = state.votedPolls[poll.id];
+                if (!hasVoted) return;
+                const container = document.getElementById(`poll-opts-${poll.id}`);
+                if (!container) return;
+                const total = poll.options.reduce((s, o) => s + (o.votes || 0), 0);
+                container.innerHTML = poll.options.map(o => {
+                    const pct = total ? Math.round((o.votes || 0) / total * 100) : 0;
+                    return `<div class="poll-option ${hasVoted === o.id ? 'voted' : ''}">
+                        <span class="poll-option-text">${escHtml(o.text)}</span>
+                        <div class="poll-bar-wrap"><div class="poll-bar" style="width:${pct}%"></div></div>
+                        <span class="poll-pct">${pct}%</span>
+                    </div>`;
+                }).join('');
+            });
+        });
+    },
+    wordcloud(panel, stage) { loadLiveWordCloud(stage.id); },
+    qa(panel, stage) { loadLiveQA(stage.id, panel); },
+    reaction(panel, stage) {
+        liveGet(`/api/interactions/reaction?stageId=${stage.id}`).then(data => {
+            (data.reactions || []).forEach(r => {
+                const el = document.getElementById(`rxn-live-${r.reaction_type}`);
+                if (el) el.textContent = r.count;
+            });
+        });
+    },
+    chat(panel, stage) { loadLiveChat(stage.id); },
+    comment(panel, stage) { loadLiveComments(stage.id, panel); },
+};
+
+function startLivePolling(stage) {
+    setInterval(() => {
+        const f = state.activeTab;
+        if (!f || !liveRefreshers[f]) return;
+        const panel = document.querySelector(`.live-panel[data-panel="${f}"]`);
+        if (panel) liveRefreshers[f](panel, stage);
+    }, 5000);
 }
 
 function buildTabs(features) {
@@ -136,6 +180,7 @@ function buildTabs(features) {
 }
 
 function activateTab(f) {
+    state.activeTab = f;
     document.querySelectorAll('.live-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === f));
     document.querySelectorAll('.live-panel').forEach(p => p.hidden = p.dataset.panel !== f);
 }
