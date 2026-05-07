@@ -393,17 +393,20 @@ function openEditor(stage) {
 function startEditorPolling(stage) {
     if (state.editorInterval) clearInterval(state.editorInterval);
     state.editorInterval = setInterval(() => {
+        if (!state.currentStage?.is_live) return;
         const f = state.activePanel;
         const panel = document.querySelector(`.editor-panel[data-panel="${f}"]`);
         if (!panel) return;
+        if (panel.querySelector('[data-creation-form]')) return;
         const refreshers = {
-            poll: () => { if (!panel.querySelector('#nq-question')) loadPolls(panel, stage); },
+            poll: () => loadPolls(panel, stage),
             wordcloud: () => loadWordCloud(panel, stage),
             qa: () => loadQA(panel, stage),
             reaction: () => loadReactions(stage),
             chat: () => loadChat(panel, stage),
             comment: () => loadComments(panel, stage),
             quiz: () => loadQuiz(panel, stage),
+            survey: () => loadSurvey(panel, stage),
         };
         if (refreshers[f]) refreshers[f]();
     }, 5000);
@@ -655,6 +658,7 @@ async function pollAction(pollId, action, panel, stage) {
 function openNewPollForm(panel, stage) {
     const form = document.createElement('div');
     form.className = 'panel-card';
+    form.dataset.creationForm = '1';
     form.innerHTML = `
     <div class="form-group"><label class="form-label">Question</label><input class="form-input" id="nq-question" placeholder="Your poll question..." /></div>
     <div class="form-group"><label class="form-label">Options (one per line)</label><textarea class="form-input form-textarea" id="nq-options" placeholder="Option A\nOption B\nOption C"></textarea></div>
@@ -870,6 +874,7 @@ function renderQuiz(panel, questions, stage) {
 function openNewQuizForm(panel, stage) {
     const form = document.createElement('div');
     form.className = 'panel-card';
+    form.dataset.creationForm = '1';
     form.innerHTML = `
     <div class="form-group"><label class="form-label">Question</label><input class="form-input" id="nqz-q" placeholder="Quiz question..." /></div>
     <div class="form-group"><label class="form-label">Options (one per line)</label><textarea class="form-input form-textarea" id="nqz-opts" placeholder="Option A\nOption B\nOption C\nOption D"></textarea></div>
@@ -955,6 +960,7 @@ function renderSurvey(panel, surveys, stage) {
 function openNewSurveyForm(panel, stage) {
     const form = document.createElement('div');
     form.className = 'panel-card';
+    form.dataset.creationForm = '1';
     form.innerHTML = `
     <div class="form-group"><label class="form-label">Survey Title</label><input class="form-input" id="nsv-title" placeholder="e.g. Session feedback" /></div>
     <div class="form-group"><label class="form-label">Questions (one per line)</label><textarea class="form-input form-textarea" id="nsv-questions" placeholder="How useful was this session?\nWhat could be improved?"></textarea></div>
