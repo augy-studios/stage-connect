@@ -1030,7 +1030,22 @@ function updateLiveButtons() {
         document.getElementById('qr-code-btn').onclick = () => {
             const modal = document.getElementById('qr-modal');
             document.getElementById('qr-modal-url').textContent = url;
-            new QRious({ element: document.getElementById('qr-canvas'), value: url, size: 220, padding: 16 });
+            const canvas = document.getElementById('qr-canvas');
+            new QRious({ element: canvas, value: url, size: 220, padding: 16 });
+            const logo = new Image();
+            logo.src = '/SCL-main.png';
+            logo.onload = () => {
+                const ctx = canvas.getContext('2d');
+                const logoSize = 44;
+                const x = (canvas.width - logoSize) / 2;
+                const y = (canvas.height - logoSize) / 2;
+                const pad = 4;
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.roundRect(x - pad, y - pad, logoSize + pad * 2, logoSize + pad * 2, 6);
+                ctx.fill();
+                ctx.drawImage(logo, x, y, logoSize, logoSize);
+            };
             modal.hidden = false;
             document.getElementById('qr-modal-close').onclick = () => { modal.hidden = true; };
             modal.onclick = e => { if (e.target === modal) modal.hidden = true; };
