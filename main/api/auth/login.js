@@ -11,11 +11,11 @@ module.exports = async (req, res) => {
     });
 
     const {
-        email,
+        username,
         password
     } = req.body || {};
-    if (!email || !password) return res.status(400).json({
-        error: 'Email and password are required.'
+    if (!username || !password) return res.status(400).json({
+        error: 'Username and password are required.'
     });
 
     const sb = getSupabase();
@@ -24,16 +24,16 @@ module.exports = async (req, res) => {
     } = await sb
         .from('uwu_users')
         .select('id, username, email, display_name, avatar_url, password_hash, created_at')
-        .eq('email', email.toLowerCase().trim())
+        .eq('username', username.toLowerCase().trim())
         .single();
 
     if (!user) return res.status(401).json({
-        error: 'Invalid email or password.'
+        error: 'Invalid username or password.'
     });
 
     const valid = await bcrypt.compare(password, user.password_hash);
     if (!valid) return res.status(401).json({
-        error: 'Invalid email or password.'
+        error: 'Invalid username or password.'
     });
 
     const token = crypto.randomBytes(48).toString('hex');

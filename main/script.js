@@ -82,9 +82,9 @@ function bindAuthUI() {
     // Login
     document.getElementById('login-form').addEventListener('submit', async e => {
         e.preventDefault();
-        const email = document.getElementById('login-email').value.trim();
+        const username = document.getElementById('login-username').value.trim();
         const password = document.getElementById('login-password').value;
-        await doLogin(email, password);
+        await doLogin(username, password);
     });
 
     // Register
@@ -134,10 +134,10 @@ async function apiDelete(path, auth = false) {
     return res.json();
 }
 
-async function doLogin(email, password) {
+async function doLogin(username, password) {
     try {
         const data = await apiPost('/api/auth/login', {
-            email,
+            username,
             password
         });
         if (data.error) return toast(data.error, 'error');
