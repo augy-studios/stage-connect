@@ -922,21 +922,33 @@ function bindLiveButtons() {
             if (e.target === document.getElementById('publish-modal')) document.getElementById('publish-modal').hidden = true;
         };
     };
-    document.getElementById('end-live-btn').onclick = async () => {
+    document.getElementById('end-live-btn').onclick = () => {
         if (!confirm('End this session? The slug will be released.')) return;
-        try {
-            const data = await apiPost('/api/stages/unpublish', {
-                stageId: state.currentStage.id
-            }, true);
-            if (data.error) return toast(data.error, 'error');
-            state.currentStage.is_live = false;
-            state.currentStage.slug = null;
-            updateStatusBadge();
-            updateLiveButtons();
-            toast('Session ended.', 'success');
-        } catch {
-            toast('Failed to end session.', 'error');
-        }
+        const btn = document.getElementById('end-live-btn');
+        btn.disabled = true;
+        btn.textContent = 'Ending...';
+        setTimeout(async () => {
+            try {
+                const data = await apiPost('/api/stages/unpublish', {
+                    stageId: state.currentStage.id
+                }, true);
+                if (data.error) {
+                    toast(data.error, 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Stop Session';
+                    return;
+                }
+                state.currentStage.is_live = false;
+                state.currentStage.slug = null;
+                updateStatusBadge();
+                updateLiveButtons();
+                toast('Session ended.', 'success');
+            } catch {
+                toast('Failed to end session.', 'error');
+                btn.disabled = false;
+                btn.textContent = 'Stop Session';
+            }
+        }, 0);
     };
 }
 
