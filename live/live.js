@@ -153,6 +153,10 @@ const liveRefreshers = {
     },
     chat(panel, stage) { loadLiveChat(stage.id); },
     comment(panel, stage) { loadLiveComments(stage.id, panel); },
+    quiz(panel, stage) {
+        if (document.getElementById('quiz-timer')) return;
+        loadLiveQuiz(panel, stage.id);
+    },
 };
 
 function startLivePolling(stage) {
