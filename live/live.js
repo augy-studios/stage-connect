@@ -321,17 +321,17 @@ async wordcloud(panel, stage) {
                         {
                             type: 'clap',
                             label: 'Clap',
-                            svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 12V7a2 2 0 0 1 4 0"/><path d="M12 7V5a2 2 0 0 1 4 0v5"/><path d="M16 6a2 2 0 0 1 4 0v6a8 8 0 0 1-8 8h-1a8 8 0 0 1-8-8v-3a2 2 0 0 1 4 0v2"/><path d="M8 14V9a2 2 0 0 1 4 0v3"/></svg>'
+                            svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2"/><path d="M14 10V4a2 2 0 0 0-2-2 2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>'
                         },
                         {
                             type: 'wow',
                             label: 'Wow',
-                            svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>'
+                            svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="9" cy="10" r="1.5"/><circle cx="15" cy="10" r="1.5"/><path d="M8 7c.5-1 1.5-1.5 3-1.5"/><path d="M16 7c-.5-1-1.5-1.5-3-1.5"/><ellipse cx="12" cy="17" rx="2" ry="2.5"/></svg>'
                         },
                         {
                             type: 'laugh',
                             label: 'Laugh',
-                            svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>'
+                            svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 10c.5-1 2-1 2.5 0"/><path d="M13.5 10c.5-1 2-1 2.5 0"/><path d="M8 15h8"/><path d="M8 15c0 2.8 2.2 5 4 5s4-2.2 4-5"/></svg>'
                         },
                     ];
                     const data = await liveGet(`/api/interactions/reaction?stageId=${stage.id}`);
@@ -341,10 +341,14 @@ async wordcloud(panel, stage) {
                     });
                     panel.innerHTML = `
       <div class="panel-card">
-        <p style="text-align:center;color:var(--text-muted);font-size:0.88rem;margin-bottom:16px">Tap to react!</p>
+        <p style="text-align:center;color:var(--text-muted);font-size:0.88rem;margin-bottom:16px">Tap or hold to react!</p>
         <div class="reactions-live">
           ${reactions.map(r => `
-            <button class="reaction-live-btn" onclick="sendReaction('${stage.id}','${r.type}',this)">
+            <button class="reaction-live-btn"
+              onpointerdown="startReaction('${stage.id}','${r.type}',this)"
+              onpointerup="stopReaction()"
+              onpointerleave="stopReaction()"
+              onpointercancel="stopReaction()">
               ${r.svg}
               <span>${r.label}</span>
               <span class="reaction-live-count" id="rxn-live-${r.type}">${counts[r.type] || 0}</span>
@@ -508,6 +512,23 @@ async function voteQA(qaId, voteType) {
     });
     toast('Vote registered!', 'success');
     loadLiveQA(state.stage.id, document.querySelector('.live-panel[data-panel="qa"]'));
+}
+
+let _rxnHoldTimeout = null;
+let _rxnHoldInterval = null;
+
+function startReaction(stageId, reactionType, btn) {
+    sendReaction(stageId, reactionType, btn);
+    _rxnHoldTimeout = setTimeout(() => {
+        _rxnHoldInterval = setInterval(() => sendReaction(stageId, reactionType, btn), 200);
+    }, 500);
+}
+
+function stopReaction() {
+    clearTimeout(_rxnHoldTimeout);
+    clearInterval(_rxnHoldInterval);
+    _rxnHoldTimeout = null;
+    _rxnHoldInterval = null;
 }
 
 async function sendReaction(stageId, reactionType, btn) {
