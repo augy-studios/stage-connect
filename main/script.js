@@ -1030,15 +1030,30 @@ function updateLiveButtons() {
         document.getElementById('qr-code-btn').onclick = () => {
             const modal = document.getElementById('qr-modal');
             document.getElementById('qr-modal-url').textContent = url;
+            const displaySize = 320;
+            const margin = 20;
+            const qrSize = displaySize - margin * 2;
+
+            // Render QR onto an off-screen canvas so QRious controls its own sizing
+            const offscreen = document.createElement('canvas');
+            new QRious({ element: offscreen, value: url, size: qrSize, padding: 0 });
+
+            // Draw onto the display canvas, centered with a white background
             const canvas = document.getElementById('qr-canvas');
-            new QRious({ element: canvas, value: url, size: 320, padding: 2 });
+            canvas.width = displaySize;
+            canvas.height = displaySize;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, displaySize, displaySize);
+            ctx.drawImage(offscreen, margin, margin, qrSize, qrSize);
+
+            // Overlay logo centered on the display canvas
             const logo = new Image();
             logo.src = '/SCL-main.png';
             logo.onload = () => {
-                const ctx = canvas.getContext('2d');
                 const logoSize = 64;
-                const x = (canvas.width - logoSize) / 2;
-                const y = (canvas.height - logoSize) / 2;
+                const x = (displaySize - logoSize) / 2;
+                const y = (displaySize - logoSize) / 2;
                 const pad = 4;
                 ctx.fillStyle = '#ffffff';
                 ctx.beginPath();
