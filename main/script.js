@@ -1030,37 +1030,19 @@ function updateLiveButtons() {
         document.getElementById('qr-code-btn').onclick = () => {
             const modal = document.getElementById('qr-modal');
             document.getElementById('qr-modal-url').textContent = url;
-            const displaySize = 220;
-            const margin = 16;
-            const qrSize = displaySize - margin * 2;
-
-            // Render QR onto an off-screen canvas so QRious controls its own sizing
-            const offscreen = document.createElement('canvas');
-            new QRious({ element: offscreen, value: url, size: qrSize, padding: 0 });
-
-            // Draw onto the display canvas, centered with a white background
-            const canvas = document.getElementById('qr-canvas');
-            canvas.width = displaySize;
-            canvas.height = displaySize;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, displaySize, displaySize);
-            ctx.drawImage(offscreen, margin, margin, qrSize, qrSize);
-
-            // Overlay logo centered on the display canvas
-            const logo = new Image();
-            logo.src = '/SCL-main.png';
-            logo.onload = () => {
-                const logoSize = 44;
-                const x = (displaySize - logoSize) / 2;
-                const y = (displaySize - logoSize) / 2;
-                const pad = 4;
-                ctx.fillStyle = '#ffffff';
-                ctx.beginPath();
-                ctx.roundRect(x - pad, y - pad, logoSize + pad * 2, logoSize + pad * 2, 6);
-                ctx.fill();
-                ctx.drawImage(logo, x, y, logoSize, logoSize);
-            };
+            const container = document.getElementById('qr-container');
+            container.innerHTML = '';
+            const qrCode = new QRCodeStyling({
+                width: 220,
+                height: 220,
+                data: url,
+                image: '/SCL-main.png',
+                qrOptions: { errorCorrectionLevel: 'H' },
+                dotsOptions: { color: '#000000', type: 'square' },
+                backgroundOptions: { color: '#ffffff' },
+                imageOptions: { crossOrigin: 'anonymous', margin: 6, imageSize: 0.3 },
+            });
+            qrCode.append(container);
             modal.hidden = false;
             document.getElementById('qr-modal-close').onclick = () => { modal.hidden = true; };
             modal.onclick = e => { if (e.target === modal) modal.hidden = true; };

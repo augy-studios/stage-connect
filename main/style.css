@@ -932,7 +932,8 @@ select {
   box-sizing: border-box;
 }
 
-.qr-modal-body canvas {
+.qr-modal-body canvas,
+.qr-modal-body svg {
   border-radius: 10px;
   display: block;
   margin: 0 auto;
