@@ -3,33 +3,13 @@
     "version": 2,
     "cleanUrls": true,
     "regions": ["sin1"],
-    "routes": [{
-            "src": "/api/(.*)",
-            "dest": "/api/$1"
+    "rewrites": [{
+            "source": "/api/(.*)",
+            "destination": "/api/$1"
         },
         {
-            "src": "^/$",
-            "dest": "/index.html"
-        },
-        {
-            "src": "^/live\\.html$",
-            "dest": "/live.html"
-        },
-        {
-            "src": "^/live\\.css$",
-            "dest": "/live.css"
-        },
-        {
-            "src": "^/live\\.js$",
-            "dest": "/live.js"
-        },
-        {
-            "src": "^/manifest\\.json$",
-            "dest": "/manifest.json"
-        },
-        {
-            "src": "^/[a-zA-Z0-9_-]+$",
-            "dest": "/live.html"
+            "source": "/:slug",
+            "destination": "/live.html"
         }
     ]
 }

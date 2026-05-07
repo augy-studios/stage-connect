@@ -2,14 +2,5 @@
     "$schema": "https://openapi.vercel.sh/vercel.json",
     "version": 2,
     "cleanUrls": true,
-    "regions": ["sin1"],
-    "routes": [{
-            "src": "/api/(.*)",
-            "dest": "/api/$1"
-        },
-        {
-            "src": "/(.*)",
-            "dest": "/$1"
-        }
-    ]
+    "regions": ["sin1"]
 }
