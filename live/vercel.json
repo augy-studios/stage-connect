@@ -4,12 +4,7 @@
     "cleanUrls": true,
     "regions": ["sin1"],
     "rewrites": [{
-            "source": "/api/(.*)",
-            "destination": "/api/$1"
-        },
-        {
-            "source": "/:slug",
-            "destination": "/live.html"
-        }
-    ]
+        "source": "/((?!api/).*)",
+        "destination": "/live.html"
+    }]
 }
