@@ -1031,7 +1031,7 @@ function updateLiveButtons() {
             const modal = document.getElementById('qr-modal');
             document.getElementById('qr-modal-url').textContent = url;
             const canvas = document.getElementById('qr-canvas');
-            new QRious({ element: canvas, value: url, size: 320, padding: 20 });
+            new QRious({ element: canvas, value: url, size: 320, padding: 2 });
             const logo = new Image();
             logo.src = '/SCL-main.png';
             logo.onload = () => {
