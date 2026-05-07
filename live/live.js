@@ -163,6 +163,8 @@ const liveRefreshers = {
 
 function startLivePolling(stage) {
     setInterval(() => {
+        const active = document.activeElement;
+        if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;
         const f = state.activeTab;
         if (!f || !liveRefreshers[f]) return;
         const panel = document.querySelector(`.live-panel[data-panel="${f}"]`);
