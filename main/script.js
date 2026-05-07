@@ -1031,12 +1031,12 @@ function updateLiveButtons() {
             const modal = document.getElementById('qr-modal');
             document.getElementById('qr-modal-url').textContent = url;
             const canvas = document.getElementById('qr-canvas');
-            new QRious({ element: canvas, value: url, size: 220, padding: 16 });
+            new QRious({ element: canvas, value: url, size: 320, padding: 20 });
             const logo = new Image();
             logo.src = '/SCL-main.png';
             logo.onload = () => {
                 const ctx = canvas.getContext('2d');
-                const logoSize = 44;
+                const logoSize = 64;
                 const x = (canvas.width - logoSize) / 2;
                 const y = (canvas.height - logoSize) / 2;
                 const pad = 4;
