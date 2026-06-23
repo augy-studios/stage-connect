@@ -1,6 +1,6 @@
 # Stage Connect
 
-Join a live interactive stage — polls, Q&A, quizzes, and more.
+Join a live interactive stage for polls, Q&A, quizzes, and more.
 
 - **Main app (presenter):** `stage.uwuapps.org` → `main/`
 - **Live view (audience):** `live.stage.uwuapps.org/:slug` → `live/`
