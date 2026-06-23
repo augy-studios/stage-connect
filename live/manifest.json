@@ -22,7 +22,7 @@
         {
             "src": "/images/screenshot_2.png",
             "type": "image/png",
-            "sizes": "1920x988",
+            "sizes": "1920x1080",
             "form_factor": "wide"
         }
     ],
@@ -31,7 +31,7 @@
     "background_color": "#cfc",
     "display": "standalone",
     "display_override": ["fullscreen", "minimal-ui", "window-controls-overlay"],
-    "orientation": "portrait",
+    "orientation": "any",
     "id": "stage-connect-live",
     "dir": "ltr",
     "scope": "/",
