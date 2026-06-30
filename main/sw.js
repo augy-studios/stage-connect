@@ -1,4 +1,4 @@
-const CACHE = "stage-connect-v1";
+const CACHE = "stage-connect-v2";
 
 const ASSETS = [
   "/",
