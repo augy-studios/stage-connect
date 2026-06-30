@@ -3,7 +3,7 @@ const ALLOWED_ORIGIN = 'https://live.stage.uwuapps.org';
 function setCors(res) {
     res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Request-Token, X-Request-TS, X-Key-ID');
 }
 
 function handleCors(req, res) {

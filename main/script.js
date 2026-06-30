@@ -13,11 +13,20 @@ const state = {
 };
 
 // ───── INIT ─────
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     initTheme();
     bindThemeModal();
     bindAuthUI();
-    checkSession();
+    await checkSession();
+    // Anonymous visitor (or expired/never-logged-in session): the auth view's
+    // login/register calls still go through signedFetch, so they need a key.
+    if (!state.user) {
+        try {
+            await initGuestKey('stage-connect');
+        } catch (e) {
+            console.error('Failed to obtain guest signing key:', e);
+        }
+    }
     document.querySelector('.topbar-brand').addEventListener('click', () => {
         if (!state.user) showView('landing');
         else showView('dashboard');
@@ -114,7 +123,7 @@ async function apiPost(path, body, auth = false) {
         'Content-Type': 'application/json'
     };
     if (auth && state.token) headers['Authorization'] = `Bearer ${state.token}`;
-    const res = await fetch(API + path, {
+    const res = await signedFetch(API + path, {
         method: 'POST',
         headers,
         body: JSON.stringify(body)
@@ -124,7 +133,7 @@ async function apiPost(path, body, auth = false) {
 async function apiGet(path, auth = false) {
     const headers = {};
     if (auth && state.token) headers['Authorization'] = `Bearer ${state.token}`;
-    const res = await fetch(API + path, {
+    const res = await signedFetch(API + path, {
         headers
     });
     return res.json();
@@ -132,7 +141,7 @@ async function apiGet(path, auth = false) {
 async function apiDelete(path, auth = false) {
     const headers = {};
     if (auth && state.token) headers['Authorization'] = `Bearer ${state.token}`;
-    const res = await fetch(API + path, {
+    const res = await signedFetch(API + path, {
         method: 'DELETE',
         headers
     });
@@ -149,6 +158,9 @@ async function doLogin(username, password) {
         state.token = data.token;
         state.user = data.user;
         localStorage.setItem('sc-token', data.token);
+        // Session token is always persisted in localStorage (no remember-me toggle
+        // on this site), so the signing key follows the same persistence.
+        storeSigningKey(data.signing_key, data.key_id, true);
         renderAuthChip();
         showView('dashboard');
         loadStages();
@@ -205,9 +217,10 @@ async function checkSession() {
     }
 }
 
-function doLogout() {
-    apiPost('/api/auth/logout', {}, true).catch(() => {});
+async function doLogout() {
+    await apiPost('/api/auth/logout', {}, true).catch(() => {});
     localStorage.removeItem('sc-token');
+    clearSigningKey();
     state.token = null;
     state.user = null;
     state.stages = [];
@@ -215,6 +228,8 @@ function doLogout() {
     renderAuthChip();
     showView('landing');
     toast('Signed out.', 'info');
+    // Back to an anonymous page state — arm a guest key before any further signedFetch calls.
+    initGuestKey('stage-connect').catch(e => console.error('Failed to obtain guest signing key:', e));
 }
 
 // ───── AUTH CHIP ─────

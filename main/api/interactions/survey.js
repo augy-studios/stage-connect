@@ -2,10 +2,13 @@
 const { getSupabase } = require('../../lib/supabase');
 const { verifySession } = require('../../lib/auth');
 const { handleCors } = require('../../lib/cors');
+const { verifySignedRequest } = require('../../lib/uwu-request-signing-server');
 
 module.exports = async (req, res) => {
     if (handleCors(req, res)) return;
     const sb = getSupabase();
+    const sig = await verifySignedRequest(req, sb);
+    if (!sig.valid) return res.status(403).json({ error: sig.reason });
 
     const { action, stage_id, survey_id, responder_token } = req.method === 'GET'
         ? req.query

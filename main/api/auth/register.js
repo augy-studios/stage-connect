@@ -3,10 +3,17 @@ const {
     getSupabase
 } = require('../../lib/supabase');
 const bcrypt = require('bcryptjs');
+const {
+    verifySignedRequest
+} = require('../../lib/uwu-request-signing-server');
 
 module.exports = async (req, res) => {
     if (req.method !== 'POST') return res.status(405).json({
         error: 'Method not allowed'
+    });
+    const sig = await verifySignedRequest(req, getSupabase());
+    if (!sig.valid) return res.status(403).json({
+        error: sig.reason
     });
 
     const {

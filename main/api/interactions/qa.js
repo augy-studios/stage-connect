@@ -8,10 +8,17 @@ const {
 const {
     handleCors
 } = require('../../lib/cors');
+const {
+    verifySignedRequest
+} = require('../../lib/uwu-request-signing-server');
 
 module.exports = async (req, res) => {
     if (handleCors(req, res)) return;
     const sb = getSupabase();
+    const sig = await verifySignedRequest(req, sb);
+    if (!sig.valid) return res.status(403).json({
+        error: sig.reason
+    });
 
     if (req.method === 'GET') {
         const {

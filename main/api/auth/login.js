@@ -45,12 +45,24 @@ module.exports = async (req, res) => {
         expires_at
     });
 
+    // Signing key mirrors the session's expiry 1:1 — same token doubles as the key id.
+    const signing_key = crypto.randomBytes(32).toString('hex');
+    await sb.from('uwu_signing_keys').insert({
+        session_token: token,
+        signing_key,
+        is_guest: false,
+        app_id: 'stage-connect',
+        expires_at
+    });
+
     const {
         password_hash: _,
         ...safeUser
     } = user;
     res.status(200).json({
         token,
-        user: safeUser
+        user: safeUser,
+        signing_key,
+        key_id: token
     });
 };
