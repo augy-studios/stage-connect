@@ -14,8 +14,6 @@ const state = {
 
 // ───── INIT ─────
 document.addEventListener('DOMContentLoaded', async () => {
-    initTheme();
-    bindThemeModal();
     bindAuthUI();
     await checkSession();
     // Anonymous visitor (or expired/never-logged-in session): the auth view's
@@ -32,41 +30,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         else showView('dashboard');
     });
 });
-
-// ───── THEME ─────
-const THEMES = ['classic', 'ng1', 'ng2', 'ng3', 'ng4', 'ng5', 'light'];
-
-function initTheme() {
-    const saved = localStorage.getItem('sc-theme') || 'classic';
-    applyTheme(saved);
-}
-
-function applyTheme(t) {
-    document.documentElement.setAttribute('data-theme', t);
-    localStorage.setItem('sc-theme', t);
-    document.querySelectorAll('.theme-swatch').forEach(s => {
-        s.classList.toggle('active', s.dataset.theme === t);
-    });
-}
-
-function bindThemeModal() {
-    const modal = document.getElementById('theme-modal');
-    document.getElementById('theme-btn').addEventListener('click', () => {
-        modal.hidden = false;
-        initTheme(); // sync active swatches
-    });
-    document.getElementById('theme-modal-close').addEventListener('click', () => {
-        modal.hidden = true;
-    });
-    modal.addEventListener('click', e => {
-        if (e.target === modal) modal.hidden = true;
-    });
-    document.querySelectorAll('.theme-swatch').forEach(s => {
-        s.addEventListener('click', () => {
-            applyTheme(s.dataset.theme);
-        });
-    });
-}
 
 // ───── TOAST ─────
 function toast(msg, type = 'info', duration = 3500) {
@@ -228,7 +191,7 @@ async function doLogout() {
     renderAuthChip();
     showView('landing');
     toast('Signed out.', 'info');
-    // Back to an anonymous page state — arm a guest key before any further signedFetch calls.
+    // Back to an anonymous page state, arm a guest key before any further signedFetch calls.
     initGuestKey('stage-connect').catch(e => console.error('Failed to obtain guest signing key:', e));
 }
 
@@ -236,7 +199,7 @@ async function doLogout() {
 function renderAuthChip() {
     const area = document.getElementById('auth-area');
     if (!state.user) {
-        area.innerHTML = '<button class="btn btn-primary btn-sm" onclick="openSignIn()">Sign In</button>';
+        area.innerHTML = '<button class="btn btn-primary btn-sm" type="button" onclick="openSignIn()">Sign In</button>';
         return;
     }
     const initials = ((state.user.display_name || state.user.username || '?')[0]).toUpperCase();
@@ -245,19 +208,18 @@ function renderAuthChip() {
     chip.innerHTML = `
     <div class="user-avatar">${state.user.avatar_url ? `<img src="${state.user.avatar_url}" alt="avatar" />` : initials}</div>
     <span class="user-name">${state.user.display_name || state.user.username}</span>
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;color:var(--text-faint)">
-      <polyline points="6,9 12,15 18,9"/>
-    </svg>`;
+    <span data-icon="chevron-down"></span>`;
     const menu = document.createElement('div');
-    menu.style.cssText = 'position:absolute;top:56px;right:24px;background:var(--surface);backdrop-filter:blur(16px);border:1.5px solid var(--surface-border);border-radius:12px;padding:8px;z-index:150;box-shadow:0 4px 20px var(--shadow-strong);display:none;min-width:160px;';
-    menu.innerHTML = `<button onclick="doLogout()" style="background:none;border:none;cursor:pointer;font-family:\'Jua\',sans-serif;font-size:0.88rem;color:var(--danger);padding:10px 14px;border-radius:8px;width:100%;text-align:left;display:flex;align-items:center;gap:8px;">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px">
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/>
-    </svg>Sign Out</button>`;
+    menu.className = 'user-menu';
+    // The open/closed state is read off the inline style below, so seed it.
+    menu.style.display = 'none';
+    menu.innerHTML = `<button class="user-menu-item" type="button" onclick="doLogout()">
+    <span data-icon="log-out"></span>Sign Out</button>`;
     area.innerHTML = '';
     area.appendChild(chip);
     area.style.position = 'relative';
     area.appendChild(menu);
+    hydrateIcons(area);
     chip.addEventListener('click', e => {
         e.stopPropagation();
         menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
@@ -384,39 +346,23 @@ document.getElementById('create-confirm').addEventListener('click', async () => 
 
 // ───── EDITOR ─────
 const FEATURE_META = {
-    poll: {
-        label: 'Polls',
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>'
-    },
-    wordcloud: {
-        label: 'Word Cloud',
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>'
-    },
-    qa: {
-        label: 'Q&A',
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
-    },
-    quiz: {
-        label: 'Quiz',
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,11 12,14 22,4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>'
-    },
-    survey: {
-        label: 'Survey',
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>'
-    },
-    reaction: {
-        label: 'Reactions',
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>'
-    },
-    chat: {
-        label: 'Chat',
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'
-    },
-    comment: {
-        label: 'Comments',
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>'
-    }
+    poll: { label: 'Polls', icon: 'poll' },
+    wordcloud: { label: 'Word Cloud', icon: 'wordcloud' },
+    qa: { label: 'Q&A', icon: 'qa' },
+    quiz: { label: 'Quiz', icon: 'quiz' },
+    survey: { label: 'Survey', icon: 'survey' },
+    reaction: { label: 'Reactions', icon: 'reaction' },
+    chat: { label: 'Chat', icon: 'chat' },
+    comment: { label: 'Comments', icon: 'comment' }
 };
+
+const REACTIONS = [
+    { type: 'heart', label: 'Heart' },
+    { type: 'fire', label: 'Fire' },
+    { type: 'clap', label: 'Clap' },
+    { type: 'wow', label: 'Wow' },
+    { type: 'laugh', label: 'Laugh' }
+];
 
 function openEditor(stage) {
     state.currentStage = stage;
@@ -468,10 +414,12 @@ function buildSidebar(features) {
         const btn = document.createElement('button');
         btn.className = 'nav-item';
         btn.dataset.panel = f;
-        btn.innerHTML = m.icon + m.label;
+        btn.type = 'button';
+        btn.innerHTML = `<span data-icon="${m.icon}"></span>${m.label}`;
         btn.addEventListener('click', () => activatePanel(f));
         nav.appendChild(btn);
     });
+    hydrateIcons(nav);
     document.getElementById('back-to-dash').onclick = () => {
         if (state.editorInterval) { clearInterval(state.editorInterval); state.editorInterval = null; }
         showView('dashboard');
@@ -506,12 +454,13 @@ const panelBuilders = {
         panel.innerHTML = `
       <div class="panel-header">
         <h2 class="panel-title">Polls</h2>
-        <button class="btn btn-primary" id="new-poll-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <button class="btn btn-primary" type="button" id="new-poll-btn">
+          <span data-icon="plus"></span>
           New Poll
         </button>
       </div>
       <div id="polls-list"></div>`;
+        hydrateIcons(panel);
         panel.querySelector('#new-poll-btn').onclick = () => openNewPollForm(panel, stage);
         loadPolls(panel, stage);
     },
@@ -520,15 +469,15 @@ const panelBuilders = {
         panel.innerHTML = `
       <div class="panel-header"><h2 class="panel-title">Word Cloud</h2></div>
       <div class="panel-card">
-        <div class="wordcloud-canvas" id="wc-canvas"><span style="color:var(--text-faint);font-size:0.88rem">Words submitted by audience will appear here</span></div>
-        <div style="display:flex;gap:10px;align-items:center">
-          <input class="form-input" id="wc-preview-input" placeholder="Preview a word..." style="flex:1" />
-          <button class="btn btn-secondary" id="wc-clear">Clear Display</button>
+        <div class="wordcloud-canvas" id="wc-canvas"><span class="wc-hint">Words submitted by audience will appear here</span></div>
+        <div class="wc-preview-row">
+          <input class="form-input" id="wc-preview-input" placeholder="Preview a word..." />
+          <button class="btn btn-secondary" type="button" id="wc-clear">Clear Display</button>
         </div>
       </div>`;
         loadWordCloud(panel, stage);
         panel.querySelector('#wc-clear').onclick = () => {
-            document.getElementById('wc-canvas').innerHTML = '<span style="color:var(--text-faint);font-size:0.88rem">Cleared.</span>';
+            document.getElementById('wc-canvas').innerHTML = '<span class="wc-hint">Cleared.</span>';
         };
     },
 
@@ -543,12 +492,13 @@ const panelBuilders = {
         panel.innerHTML = `
       <div class="panel-header">
         <h2 class="panel-title">Quiz</h2>
-        <button class="btn btn-primary" id="new-quiz-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <button class="btn btn-primary" type="button" id="new-quiz-btn">
+          <span data-icon="plus"></span>
           New Question
         </button>
       </div>
       <div id="quiz-list"></div>`;
+        hydrateIcons(panel);
         panel.querySelector('#new-quiz-btn').onclick = () => openNewQuizForm(panel, stage);
         loadQuiz(panel, stage);
     },
@@ -556,63 +506,39 @@ const panelBuilders = {
     survey(panel, stage) {
         panel.innerHTML = `
       <div class="panel-header"><h2 class="panel-title">Survey</h2>
-        <button class="btn btn-primary" id="new-survey-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <button class="btn btn-primary" type="button" id="new-survey-btn">
+          <span data-icon="plus"></span>
           New Survey
         </button>
       </div>
       <div id="survey-list"></div>`;
+        hydrateIcons(panel);
         panel.querySelector('#new-survey-btn').onclick = () => openNewSurveyForm(panel, stage);
         loadSurvey(panel, stage);
     },
 
     reaction(panel, stage) {
-        const reactions = [{
-                type: 'heart',
-                label: 'Heart',
-                svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>'
-            },
-            {
-                type: 'fire',
-                label: 'Fire',
-                svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>'
-            },
-            {
-                type: 'clap',
-                label: 'Clap',
-                svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2"/><path d="M14 10V4a2 2 0 0 0-2-2 2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>'
-            },
-            {
-                type: 'wow',
-                label: 'Wow',
-                svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="9" cy="10" r="1.5"/><circle cx="15" cy="10" r="1.5"/><path d="M8 7c.5-1 1.5-1.5 3-1.5"/><path d="M16 7c-.5-1-1.5-1.5-3-1.5"/><ellipse cx="12" cy="17" rx="2" ry="2.5"/></svg>'
-            },
-            {
-                type: 'laugh',
-                label: 'Laugh',
-                svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 10c.5-1 2-1 2.5 0"/><path d="M13.5 10c.5-1 2-1 2.5 0"/><path d="M8 15h8"/><path d="M8 15c0 2.8 2.2 5 4 5s4-2.2 4-5"/></svg>'
-            },
-        ];
         panel.innerHTML = `
       <div class="panel-header"><h2 class="panel-title">Reactions</h2></div>
       <div class="panel-card">
-        <p style="color:var(--text-muted);font-size:0.88rem;margin-bottom:16px">Live reaction counts from your audience</p>
+        <p class="panel-note">Live reaction counts from your audience</p>
         <div class="reactions-grid" id="reactions-grid">
-          ${reactions.map(r => `
+          ${REACTIONS.map(r => `
             <div class="reaction-btn-big" id="rxn-${r.type}">
-              <div class="reaction-icon">${r.svg}</div>
+              <div class="reaction-icon" data-icon="${r.type}"></div>
               <span>${r.label}</span>
               <span class="reaction-count" id="rxn-count-${r.type}">0</span>
             </div>`).join('')}
         </div>
       </div>`;
+        hydrateIcons(panel);
         loadReactions(stage);
     },
 
     chat(panel, stage) {
         panel.innerHTML = `
       <div class="panel-header"><h2 class="panel-title">Chat</h2>
-        <button class="btn btn-secondary btn-sm" id="clear-chat-btn">Clear All</button>
+        <button class="btn btn-secondary btn-sm" type="button" id="clear-chat-btn">Clear All</button>
       </div>
       <div class="panel-card">
         <div class="chat-messages" id="chat-msgs"></div>
@@ -637,7 +563,7 @@ const panelBuilders = {
     }
 };
 
-// ───── DATA LOADERS (stub → real API) ─────
+// ───── DATA LOADERS ─────
 async function loadPolls(panel, stage) {
     try {
         const data = await apiGet(`/api/interactions/poll?stageId=${stage.id}`, true);
@@ -650,7 +576,8 @@ async function loadPolls(panel, stage) {
 function renderPolls(panel, polls, stage) {
     const list = panel.querySelector('#polls-list');
     if (!polls.length) {
-        list.innerHTML = `<div class="empty-panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><p>No polls yet. Create one above.</p></div>`;
+        list.innerHTML = `<div class="empty-panel"><span data-icon="poll"></span><p>No polls yet. Create one above.</p></div>`;
+        hydrateIcons(list);
         return;
     }
     list.innerHTML = '';
@@ -671,8 +598,8 @@ function renderPolls(panel, polls, stage) {
         }).join('')}
       </div>
       <div class="poll-actions">
-        <button class="toggle-pill ${poll.is_active ? 'on' : ''}" data-poll-id="${poll.id}" data-action="toggle">${poll.is_active ? 'Active' : 'Inactive'}</button>
-        <button class="toggle-pill" data-poll-id="${poll.id}" data-action="delete" style="color:var(--danger)">Delete</button>
+        <button class="toggle-pill ${poll.is_active ? 'on' : ''}" type="button" data-poll-id="${poll.id}" data-action="toggle">${poll.is_active ? 'Active' : 'Inactive'}</button>
+        <button class="toggle-pill danger" type="button" data-poll-id="${poll.id}" data-action="delete">Delete</button>
       </div>`;
         card.querySelectorAll('[data-action]').forEach(btn => {
             btn.onclick = () => pollAction(btn.dataset.pollId, btn.dataset.action, panel, stage);
@@ -702,7 +629,7 @@ function openNewPollForm(panel, stage) {
     form.innerHTML = `
     <div class="form-group"><label class="form-label">Question</label><input class="form-input" id="nq-question" placeholder="Your poll question..." /></div>
     <div class="form-group"><label class="form-label">Options (one per line)</label><textarea class="form-input form-textarea" id="nq-options" placeholder="Option A\nOption B\nOption C"></textarea></div>
-    <div class="publish-actions"><button class="btn btn-secondary" id="nq-cancel">Cancel</button><button class="btn btn-primary" id="nq-submit">Create Poll</button></div>`;
+    <div class="publish-actions"><button class="btn btn-secondary" type="button" id="nq-cancel">Cancel</button><button class="btn btn-primary" type="button" id="nq-submit">Create Poll</button></div>`;
     panel.querySelector('#polls-list').prepend(form);
     form.querySelector('#nq-cancel').onclick = () => form.remove();
     form.querySelector('#nq-submit').onclick = async () => {
@@ -737,7 +664,8 @@ async function loadQA(panel, stage) {
 function renderQA(panel, questions, stage) {
     const list = panel.querySelector('#qa-list');
     if (!questions.length) {
-        list.innerHTML = `<div class="empty-panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/></svg><p>No questions yet. Audience can submit them live.</p></div>`;
+        list.innerHTML = `<div class="empty-panel"><span data-icon="qa"></span><p>No questions yet. Audience can submit them live.</p></div>`;
+        hydrateIcons(list);
         return;
     }
     list.innerHTML = '';
@@ -755,13 +683,13 @@ function renderQA(panel, questions, stage) {
             <span>${escHtml(q.author_name || 'Anonymous')}</span>
             <span>${new Date(q.created_at).toLocaleTimeString('en-SG', {hour:'2-digit', minute:'2-digit'})}</span>
             ${q.is_answered ? `<span class="qa-answered">Answered</span>` : ''}
-            ${q.is_pinned ? `<span style="color:var(--brand-text)">Pinned</span>` : ''}
+            ${q.is_pinned ? `<span class="qa-pinned">Pinned</span>` : ''}
           </div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
-          <button class="toggle-pill ${q.is_answered ? 'on' : ''}" data-qa-id="${q.id}" data-action="answer">${q.is_answered ? 'Answered' : 'Mark Done'}</button>
-          <button class="toggle-pill ${q.is_pinned ? 'on' : ''}" data-qa-id="${q.id}" data-action="pin">${q.is_pinned ? 'Unpin' : 'Pin'}</button>
-          <button class="toggle-pill" data-qa-id="${q.id}" data-action="hide" style="color:var(--danger)">Hide</button>
+        <div class="qa-actions">
+          <button class="toggle-pill ${q.is_answered ? 'on' : ''}" type="button" data-qa-id="${q.id}" data-action="answer">${q.is_answered ? 'Answered' : 'Mark Done'}</button>
+          <button class="toggle-pill ${q.is_pinned ? 'on' : ''}" type="button" data-qa-id="${q.id}" data-action="pin">${q.is_pinned ? 'Unpin' : 'Pin'}</button>
+          <button class="toggle-pill danger" type="button" data-qa-id="${q.id}" data-action="hide">Hide</button>
         </div>
       </div>`;
         card.querySelectorAll('[data-action]').forEach(btn => {
@@ -848,7 +776,8 @@ async function loadComments(panel, stage) {
 function renderComments(panel, comments, stage) {
     const list = panel.querySelector('#comments-list');
     if (!comments.length) {
-        list.innerHTML = `<div class="empty-panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><p>No comments yet.</p></div>`;
+        list.innerHTML = `<div class="empty-panel"><span data-icon="comment"></span><p>No comments yet.</p></div>`;
+        hydrateIcons(list);
         return;
     }
     list.innerHTML = '';
@@ -862,7 +791,7 @@ function renderComments(panel, comments, stage) {
           <div class="qa-question-text">${escHtml(c.content)}</div>
           <div class="qa-meta"><span>${escHtml(c.author_name || 'Anonymous')}</span><span>${new Date(c.created_at).toLocaleTimeString('en-SG',{hour:'2-digit',minute:'2-digit'})}</span></div>
         </div>
-        <button class="toggle-pill" data-comment-id="${c.id}" style="flex-shrink:0;color:var(--danger)">Hide</button>
+        <button class="toggle-pill danger" type="button" data-comment-id="${c.id}">Hide</button>
       </div>`;
         card.querySelector('[data-comment-id]').onclick = async () => {
             await apiPost('/api/interactions/comment', {
@@ -886,7 +815,8 @@ async function loadQuiz(panel, stage) {
 function renderQuiz(panel, questions, stage) {
     const list = panel.querySelector('#quiz-list');
     if (!questions.length) {
-        list.innerHTML = `<div class="empty-panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,11 12,14 22,4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><p>No quiz questions yet.</p></div>`;
+        list.innerHTML = `<div class="empty-panel"><span data-icon="quiz"></span><p>No quiz questions yet.</p></div>`;
+        hydrateIcons(list);
         return;
     }
     list.innerHTML = '';
@@ -901,16 +831,17 @@ function renderQuiz(panel, questions, stage) {
             const n = counts[o.id] || 0;
             const pct = totalAnswers ? Math.round(n / totalAnswers * 100) : 0;
             const isCorrect = o.id === q.correct_option_id;
-            return `<div class="poll-option-row" style="${isCorrect ? 'border-color:var(--success)' : ''}">
+            return `<div class="poll-option-row ${isCorrect ? 'correct' : ''}">
               <span class="poll-option-text">${escHtml(o.text)}</span>
-              ${isCorrect ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0;color:var(--success)"><polyline points="20,6 9,17 4,12"/></svg>' : ''}
-              <div class="poll-bar-wrap" style="flex:1;margin:0 8px"><div class="poll-bar" style="width:${pct}%"></div></div>
+              ${isCorrect ? '<span class="correct-mark" data-icon="check"></span>' : ''}
+              <div class="poll-bar-wrap"><div class="poll-bar" style="width:${pct}%"></div></div>
               <span class="poll-count">${n}</span>
             </div>`;
         }).join('')}</div>
-      <div class="poll-actions"><span style="font-size:0.8rem;color:var(--text-faint)">${q.points} pts · ${q.time_limit_seconds}s · ${totalAnswers} answer${totalAnswers !== 1 ? 's' : ''}</span>
-        <button class="toggle-pill ${q.is_active ? 'on' : ''}" data-quiz-id="${q.id}" data-action="toggle">${q.is_active ? 'Active' : 'Activate'}</button>
+      <div class="poll-actions"><span class="poll-meta">${q.points} pts · ${q.time_limit_seconds}s · ${totalAnswers} answer${totalAnswers !== 1 ? 's' : ''}</span>
+        <button class="toggle-pill ${q.is_active ? 'on' : ''}" type="button" data-quiz-id="${q.id}" data-action="toggle">${q.is_active ? 'Active' : 'Activate'}</button>
       </div>`;
+        hydrateIcons(card);
         card.querySelector('[data-action]').onclick = async () => {
             await apiPost('/api/interactions/quiz', {
                 action: 'toggle',
@@ -931,11 +862,11 @@ function openNewQuizForm(panel, stage) {
     <div class="form-group"><label class="form-label">Question</label><input class="form-input" id="nqz-q" placeholder="Quiz question..." /></div>
     <div class="form-group"><label class="form-label">Options (one per line)</label><textarea class="form-input form-textarea" id="nqz-opts" placeholder="Option A\nOption B\nOption C\nOption D"></textarea></div>
     <div class="form-group"><label class="form-label">Correct Answer (exact text)</label><input class="form-input" id="nqz-correct" placeholder="Option A" /></div>
-    <div style="display:flex;gap:12px">
-      <div class="form-group" style="flex:1"><label class="form-label">Points</label><input class="form-input" id="nqz-pts" type="number" value="10" min="1" /></div>
-      <div class="form-group" style="flex:1"><label class="form-label">Time (seconds)</label><input class="form-input" id="nqz-time" type="number" value="30" min="5" /></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Points</label><input class="form-input" id="nqz-pts" type="number" value="10" min="1" /></div>
+      <div class="form-group"><label class="form-label">Time (seconds)</label><input class="form-input" id="nqz-time" type="number" value="30" min="5" /></div>
     </div>
-    <div class="publish-actions"><button class="btn btn-secondary" id="nqz-cancel">Cancel</button><button class="btn btn-primary" id="nqz-submit">Add Question</button></div>`;
+    <div class="publish-actions"><button class="btn btn-secondary" type="button" id="nqz-cancel">Cancel</button><button class="btn btn-primary" type="button" id="nqz-submit">Add Question</button></div>`;
     panel.querySelector('#quiz-list').prepend(form);
     form.querySelector('#nqz-cancel').onclick = () => form.remove();
     form.querySelector('#nqz-submit').onclick = async () => {
@@ -981,7 +912,8 @@ async function loadSurvey(panel, stage) {
 function renderSurvey(panel, surveys, responseSets, stage) {
     const list = panel.querySelector('#survey-list');
     if (!surveys.length) {
-        list.innerHTML = `<div class="empty-panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg><p>No survey questions yet. Create one above.</p></div>`;
+        list.innerHTML = `<div class="empty-panel"><span data-icon="survey"></span><p>No survey questions yet. Create one above.</p></div>`;
+        hydrateIcons(list);
         return;
     }
     list.innerHTML = '';
@@ -994,19 +926,19 @@ function renderSurvey(panel, surveys, responseSets, stage) {
         const responsesHtml = qs.length && responses.length ? qs.map((q, qi) => {
             const answers = responses.map(r => (r.answers || [])[qi]).filter(a => a);
             if (!answers.length) return '';
-            return `<div style="margin-top:10px">
-              <div style="font-size:0.8rem;font-weight:600;color:var(--text-muted);margin-bottom:4px">${escHtml(q.question)}</div>
-              ${answers.map(a => `<div style="font-size:0.82rem;padding:4px 8px;background:var(--bg-hover);border-radius:6px;margin-bottom:3px">${escHtml(a)}</div>`).join('')}
+            return `<div class="survey-question-block">
+              <div class="survey-question-label">${escHtml(q.question)}</div>
+              ${answers.map(a => `<div class="survey-answer">${escHtml(a)}</div>`).join('')}
             </div>`;
         }).join('') : '';
 
         card.innerHTML = `
       <div class="poll-question">${escHtml(survey.title)}</div>
-      <div style="font-size:0.82rem;color:var(--text-muted);margin:4px 0 10px">${qs.length} question${qs.length !== 1 ? 's' : ''} · ${responses.length} response${responses.length !== 1 ? 's' : ''}</div>
+      <div class="survey-question-label">${qs.length} question${qs.length !== 1 ? 's' : ''} · ${responses.length} response${responses.length !== 1 ? 's' : ''}</div>
       ${responsesHtml ? `<div class="survey-responses">${responsesHtml}</div>` : ''}
-      <div class="poll-actions" style="margin-top:12px">
-        <button class="toggle-pill ${survey.is_active ? 'on' : ''}" data-survey-id="${survey.id}" data-action="toggle">${survey.is_active ? 'Active' : 'Inactive'}</button>
-        <button class="toggle-pill" data-survey-id="${survey.id}" data-action="delete" style="color:var(--danger)">Delete</button>
+      <div class="poll-actions">
+        <button class="toggle-pill ${survey.is_active ? 'on' : ''}" type="button" data-survey-id="${survey.id}" data-action="toggle">${survey.is_active ? 'Active' : 'Inactive'}</button>
+        <button class="toggle-pill danger" type="button" data-survey-id="${survey.id}" data-action="delete">Delete</button>
       </div>`;
         card.querySelector('[data-action="toggle"]').onclick = async () => {
             try {
@@ -1032,7 +964,7 @@ function openNewSurveyForm(panel, stage) {
     form.innerHTML = `
     <div class="form-group"><label class="form-label">Survey Title</label><input class="form-input" id="nsv-title" placeholder="e.g. Session feedback" /></div>
     <div class="form-group"><label class="form-label">Questions (one per line)</label><textarea class="form-input form-textarea" id="nsv-questions" placeholder="How useful was this session?\nWhat could be improved?"></textarea></div>
-    <div class="publish-actions"><button class="btn btn-secondary" id="nsv-cancel">Cancel</button><button class="btn btn-primary" id="nsv-submit">Create Survey</button></div>`;
+    <div class="publish-actions"><button class="btn btn-secondary" type="button" id="nsv-cancel">Cancel</button><button class="btn btn-primary" type="button" id="nsv-submit">Create Survey</button></div>`;
     panel.querySelector('#survey-list').prepend(form);
     form.querySelector('#nsv-cancel').onclick = () => form.remove();
     form.querySelector('#nsv-submit').onclick = async () => {

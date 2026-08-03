@@ -1,12 +1,16 @@
-const CACHE = "stage-connect-live-v2";
+const CACHE = "stage-connect-live-v3";
 
 const ASSETS = [
   "/",
   "/index.html",
+  "/css/theme.css",
   "/style.css",
   "/live.html",
   "/live.css",
   "/live.js",
+  "/js/icons.js",
+  "/js/ui.js",
+  "/js/theme.js",
   "/SCL-main.png",
   "/favicon.ico",
   "/manifest.json"

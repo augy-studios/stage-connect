@@ -16,75 +16,26 @@ const state = {
 };
 
 const FEATURE_META = {
-    poll: {
-        label: 'Polls',
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>'
-    },
-    wordcloud: {
-        label: 'Cloud',
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>'
-    },
-    qa: {
-        label: 'Q&A',
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
-    },
-    quiz: {
-        label: 'Quiz',
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,11 12,14 22,4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>'
-    },
-    survey: {
-        label: 'Survey',
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>'
-    },
-    reaction: {
-        label: 'React',
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>'
-    },
-    chat: {
-        label: 'Chat',
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'
-    },
-    comment: {
-        label: 'Comments',
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>'
-    }
+    poll: { label: 'Polls', icon: 'poll' },
+    wordcloud: { label: 'Cloud', icon: 'wordcloud' },
+    qa: { label: 'Q&A', icon: 'qa' },
+    quiz: { label: 'Quiz', icon: 'quiz' },
+    survey: { label: 'Survey', icon: 'survey' },
+    reaction: { label: 'React', icon: 'reaction' },
+    chat: { label: 'Chat', icon: 'chat' },
+    comment: { label: 'Comments', icon: 'comment' }
 };
 
-// ───── THEME ─────
-function initTheme() {
-    const saved = localStorage.getItem('sc-theme') || 'classic';
-    applyTheme(saved);
-}
-
-function applyTheme(t) {
-    document.documentElement.setAttribute('data-theme', t);
-    localStorage.setItem('sc-theme', t);
-    document.querySelectorAll('.theme-swatch').forEach(s => {
-        s.classList.toggle('active', s.dataset.theme === t);
-    });
-}
-
-function bindThemeModal() {
-    const modal = document.getElementById('theme-modal');
-    document.getElementById('theme-btn').addEventListener('click', () => {
-        modal.hidden = false;
-        initTheme();
-    });
-    document.getElementById('theme-modal-close').addEventListener('click', () => {
-        modal.hidden = true;
-    });
-    modal.addEventListener('click', e => {
-        if (e.target === modal) modal.hidden = true;
-    });
-    document.querySelectorAll('.theme-swatch').forEach(s => {
-        s.addEventListener('click', () => applyTheme(s.dataset.theme));
-    });
-}
+const REACTIONS = [
+    { type: 'heart', label: 'Heart' },
+    { type: 'fire', label: 'Fire' },
+    { type: 'clap', label: 'Clap' },
+    { type: 'wow', label: 'Wow' },
+    { type: 'laugh', label: 'Laugh' }
+];
 
 // ───── INIT ─────
 document.addEventListener('DOMContentLoaded', () => {
-    initTheme();
-    bindThemeModal();
     state.playerToken = getOrCreateToken();
     state.slug = getSlug();
 
@@ -214,10 +165,12 @@ function buildTabs(features) {
         const btn = document.createElement('button');
         btn.className = 'live-tab';
         btn.dataset.tab = f;
-        btn.innerHTML = m.icon + `<span class="tab-label">${m.label}</span>`;
+        btn.type = 'button';
+        btn.innerHTML = `<span data-icon="${m.icon}"></span><span class="tab-label">${m.label}</span>`;
         btn.onclick = () => activateTab(f);
         nav.appendChild(btn);
     });
+    hydrateIcons(nav);
 }
 
 function activateTab(f) {
@@ -238,12 +191,12 @@ function buildLivePanels(features, stage) {
 const livePanelBuilders = {
 
 async poll(panel, stage) {
-        panel.innerHTML = '<p style="color:var(--text-muted);font-size:0.88rem;text-align:center;padding:20px">Loading polls...</p>';
+        panel.innerHTML = '<div class="panel-empty tight">Loading polls...</div>';
         const data = await liveGet(`/api/interactions/poll?stageId=${stage.id}`);
         const polls = (data.polls || []).filter(p => p.is_active);
         panel.innerHTML = '';
         if (!polls.length) {
-            panel.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">No active polls yet. Check back soon!</div>';
+            panel.innerHTML = '<div class="panel-empty">No active polls yet. Check back soon!</div>';
             return;
         }
         polls.forEach(poll => {
@@ -262,7 +215,7 @@ async poll(panel, stage) {
                 <span class="poll-pct">${pct}%</span>
               </div>`;
             }
-            return `<div class="poll-option" data-poll="${poll.id}" data-opt="${o.id}" style="cursor:pointer" onclick="castVote('${poll.id}','${o.id}',this.closest('.panel-card'))">
+            return `<div class="poll-option" data-poll="${poll.id}" data-opt="${o.id}" onclick="castVote('${poll.id}','${o.id}',this.closest('.panel-card'))">
                 <span class="poll-option-text">${escHtml(o.text)}</span>
               </div>`;
         }).join('')}
@@ -277,10 +230,10 @@ async wordcloud(panel, stage) {
         <div class="form-group"><label class="form-label">Submit a word</label>
           <div class="wc-input-row">
             <input class="form-input" id="wc-word" placeholder="One word..." maxlength="30" onkeydown="if(event.key==='Enter')submitWord('${stage.id}')" />
-            <button class="btn btn-primary" onclick="submitWord('${stage.id}')">Submit</button>
+            <button class="btn btn-primary" type="button" onclick="submitWord('${stage.id}')">Submit</button>
           </div>
         </div>
-        <div class="wc-cloud" id="wc-cloud"><span style="color:var(--text-faint);font-size:0.85rem">Words will appear here</span></div>
+        <div class="wc-cloud" id="wc-cloud"><span class="wc-hint">Words will appear here</span></div>
       </div>`;
         loadLiveWordCloud(stage.id);
     },
@@ -291,49 +244,23 @@ async wordcloud(panel, stage) {
         <div class="form-group"><label class="form-label">Ask a question</label>
           <textarea class="form-input form-textarea" id="qa-q" placeholder="Your question..."></textarea>
         </div>
-        <button class="btn btn-primary" onclick="submitQuestion('${stage.id}')">Submit Question</button>
+        <button class="btn btn-primary" type="button" onclick="submitQuestion('${stage.id}')">Submit Question</button>
       </div>
       <div id="qa-live-list"></div>`;
             loadLiveQA(stage.id, panel);
         },
 
         async quiz(panel, stage) {
-                panel.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">Waiting for quiz to start...</div>';
+                panel.innerHTML = '<div class="panel-empty">Waiting for quiz to start...</div>';
                 loadLiveQuiz(panel, stage.id);
             },
 
             async survey(panel, stage) {
-                panel.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">Loading surveys...</div>';
+                panel.innerHTML = '<div class="panel-empty">Loading surveys...</div>';
                 loadLiveSurveys(panel, stage.id);
             },
 
             async reaction(panel, stage) {
-                    const reactions = [{
-                            type: 'heart',
-                            label: 'Heart',
-                            svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>'
-                        },
-                        {
-                            type: 'fire',
-                            label: 'Fire',
-                            svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>'
-                        },
-                        {
-                            type: 'clap',
-                            label: 'Clap',
-                            svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2"/><path d="M14 10V4a2 2 0 0 0-2-2 2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>'
-                        },
-                        {
-                            type: 'wow',
-                            label: 'Wow',
-                            svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="9" cy="10" r="1.5"/><circle cx="15" cy="10" r="1.5"/><path d="M8 7c.5-1 1.5-1.5 3-1.5"/><path d="M16 7c-.5-1-1.5-1.5-3-1.5"/><ellipse cx="12" cy="17" rx="2" ry="2.5"/></svg>'
-                        },
-                        {
-                            type: 'laugh',
-                            label: 'Laugh',
-                            svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 10c.5-1 2-1 2.5 0"/><path d="M13.5 10c.5-1 2-1 2.5 0"/><path d="M8 15h8"/><path d="M8 15c0 2.8 2.2 5 4 5s4-2.2 4-5"/></svg>'
-                        },
-                    ];
                     const data = await liveGet(`/api/interactions/reaction?stageId=${stage.id}`);
                     const counts = {};
                     (data.reactions || []).forEach(r => {
@@ -341,20 +268,21 @@ async wordcloud(panel, stage) {
                     });
                     panel.innerHTML = `
       <div class="panel-card">
-        <p style="text-align:center;color:var(--text-muted);font-size:0.88rem;margin-bottom:16px">Tap or hold to react!</p>
+        <p class="panel-note">Tap or hold to react!</p>
         <div class="reactions-live">
-          ${reactions.map(r => `
-            <button class="reaction-live-btn"
+          ${REACTIONS.map(r => `
+            <button class="reaction-live-btn" type="button"
               onpointerdown="startReaction('${stage.id}','${r.type}',this)"
               onpointerup="stopReaction()"
               onpointerleave="stopReaction()"
               onpointercancel="stopReaction()">
-              ${r.svg}
+              <span data-icon="${r.type}"></span>
               <span>${r.label}</span>
               <span class="reaction-live-count" id="rxn-live-${r.type}">${counts[r.type] || 0}</span>
             </button>`).join('')}
         </div>
       </div>`;
+                    hydrateIcons(panel);
                 },
 
                 async chat(panel, stage) {
@@ -362,8 +290,8 @@ async wordcloud(panel, stage) {
       <div class="panel-card">
         <div class="chat-messages" id="live-chat-msgs"></div>
         <div class="chat-send-row">
-          <input class="form-input" id="live-chat-input" placeholder="Type a message..." maxlength="300" style="flex:1" />
-          <button class="btn btn-primary" onclick="sendChat('${stage.id}')">Send</button>
+          <input class="form-input" id="live-chat-input" placeholder="Type a message..." maxlength="300" />
+          <button class="btn btn-primary" type="button" onclick="sendChat('${stage.id}')">Send</button>
         </div>
       </div>`;
                         document.getElementById('live-chat-input').addEventListener('keydown', e => {
@@ -378,7 +306,7 @@ async wordcloud(panel, stage) {
         <div class="form-group"><label class="form-label">Leave a comment</label>
           <textarea class="form-input form-textarea" id="live-comment-text" placeholder="Your comment..."></textarea>
         </div>
-        <button class="btn btn-primary" onclick="submitComment('${stage.id}')">Post Comment</button>
+        <button class="btn btn-primary" type="button" onclick="submitComment('${stage.id}')">Post Comment</button>
       </div>
       <div id="live-comments-list"></div>`;
                         loadLiveComments(stage.id, panel);
@@ -451,7 +379,7 @@ async function loadLiveWordCloud(stageId) {
         span.style.opacity = 0.5 + (count / max) * 0.5;
         cloud.appendChild(span);
     });
-    if (!Object.keys(freq).length) cloud.innerHTML = '<span style="color:var(--text-faint);font-size:0.85rem">No words yet</span>';
+    if (!Object.keys(freq).length) cloud.innerHTML = '<span class="wc-hint">No words yet</span>';
 }
 
 async function submitQuestion(stageId) {
@@ -474,7 +402,7 @@ async function loadLiveQA(stageId, panel) {
     if (!list) return;
     const qs = data.questions || [];
     if (!qs.length) {
-        list.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted)">No questions yet. Be the first!</div>';
+        list.innerHTML = '<div class="panel-empty tight">No questions yet. Be the first!</div>';
         return;
     }
     list.innerHTML = '';
@@ -484,12 +412,12 @@ async function loadLiveQA(stageId, panel) {
         card.innerHTML = `
       <div class="qa-card">
         <div class="qa-vote-col">
-          <button class="vote-btn" onclick="voteQA('${q.id}','up')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="18,15 12,9 6,15"/></svg>
+          <button class="vote-btn" type="button" onclick="voteQA('${q.id}','up')">
+            <span data-icon="chevron-up"></span>
           </button>
           <span class="vote-count">${q.upvotes - q.downvotes}</span>
-          <button class="vote-btn" onclick="voteQA('${q.id}','down')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="6,9 12,15 18,9"/></svg>
+          <button class="vote-btn" type="button" onclick="voteQA('${q.id}','down')">
+            <span data-icon="chevron-down"></span>
           </button>
         </div>
         <div class="qa-body">
@@ -499,6 +427,7 @@ async function loadLiveQA(stageId, panel) {
       </div>`;
         list.appendChild(card);
     });
+    hydrateIcons(list);
 }
 
 async function voteQA(qaId, voteType) {
@@ -558,7 +487,7 @@ function appendLiveChatMsg(m) {
     if (!msgs) return;
     const div = document.createElement('div');
     div.className = 'chat-msg';
-    div.innerHTML = `<div class="chat-msg-author">${escHtml(m.author_name || 'Anonymous')}</div><div style="font-size:0.88rem;color:var(--text)">${escHtml(m.message)}</div>`;
+    div.innerHTML = `<div class="chat-msg-author">${escHtml(m.author_name || 'Anonymous')}</div><div class="chat-msg-text">${escHtml(m.message)}</div>`;
     msgs.appendChild(div);
     msgs.scrollTop = msgs.scrollHeight;
 }
@@ -581,7 +510,7 @@ async function loadLiveSurveys(panel, stageId) {
     const data = await liveGet(`/api/interactions/survey?action=list&stage_id=${stageId}`);
     const active = (data.surveys || []).filter(s => s.is_active);
     if (!active.length) {
-        panel.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">No active surveys right now. Check back soon!</div>';
+        panel.innerHTML = '<div class="panel-empty">No active surveys right now. Check back soon!</div>';
         return;
     }
     panel.innerHTML = '';
@@ -590,19 +519,19 @@ async function loadLiveSurveys(panel, stageId) {
         const card = document.createElement('div');
         card.className = 'panel-card';
         if (alreadyDone) {
-            card.innerHTML = `<div style="text-align:center;padding:16px;color:var(--text-muted)"><strong>${escHtml(survey.title)}</strong><p style="margin-top:8px">Response submitted. Thank you!</p></div>`;
+            card.innerHTML = `<div class="survey-done"><strong>${escHtml(survey.title)}</strong><p>Response submitted. Thank you!</p></div>`;
         } else {
             const questions = survey.questions || [];
             card.innerHTML = `
         <div class="poll-question">${escHtml(survey.title)}</div>
         <div id="survey-form-${survey.id}">
           ${questions.map((q, i) => `
-            <div class="form-group" style="margin-top:12px">
+            <div class="form-group survey-question">
               <label class="form-label">${escHtml(q.question)}</label>
               <input class="form-input" id="sq-${survey.id}-${i}" placeholder="Your answer..." />
             </div>`).join('')}
         </div>
-        <button class="btn btn-primary" style="margin-top:12px;width:100%" onclick="submitSurvey('${survey.id}',${questions.length})">Submit</button>`;
+        <button class="btn btn-primary survey-submit" type="button" onclick="submitSurvey('${survey.id}',${questions.length})">Submit</button>`;
         }
         panel.appendChild(card);
     });
@@ -633,7 +562,7 @@ async function loadLiveQuiz(panel, stageId) {
     const data = await liveGet(`/api/interactions/quiz?stageId=${stageId}`);
     const active = (data.questions || []).filter(q => q.is_active && !state.answeredQuiz[q.id]);
     if (!active.length) {
-        panel.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">No active quiz question. Stay tuned!</div>';
+        panel.innerHTML = '<div class="panel-empty">No active quiz question. Stay tuned!</div>';
         return;
     }
     const q = active[0];
@@ -642,7 +571,7 @@ async function loadLiveQuiz(panel, stageId) {
       <div class="quiz-timer" id="quiz-timer">${q.time_limit_seconds}s</div>
       <div class="quiz-question">${escHtml(q.question)}</div>
       <div id="quiz-options">
-        ${(q.options||[]).map(o => `<div class="poll-option" style="cursor:pointer;margin-bottom:8px" onclick="answerQuiz('${q.id}','${o.id}',this.closest('.panel-card'))">
+        ${(q.options||[]).map(o => `<div class="poll-option quiz-option" onclick="answerQuiz('${q.id}','${o.id}',this.closest('.panel-card'))">
           <span class="poll-option-text">${escHtml(o.text)}</span>
         </div>`).join('')}
       </div>
@@ -702,7 +631,7 @@ async function loadLiveComments(stageId, panel) {
     if (!list) return;
     const comments = data.comments || [];
     if (!comments.length) {
-        list.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted)">No comments yet.</div>';
+        list.innerHTML = '<div class="panel-empty tight">No comments yet.</div>';
         return;
     }
     list.innerHTML = '';
@@ -711,23 +640,24 @@ async function loadLiveComments(stageId, panel) {
         card.className = 'panel-card';
         card.innerHTML = `
       <div class="comment-card">
-        <div style="flex:1">
-          <div style="font-size:0.9rem;color:var(--text);margin-bottom:4px">${escHtml(c.content)}</div>
-          <div style="font-size:0.75rem;color:var(--text-faint)">${escHtml(c.author_name||'Anonymous')}</div>
+        <div class="comment-body">
+          <div class="comment-text">${escHtml(c.content)}</div>
+          <div class="comment-author">${escHtml(c.author_name||'Anonymous')}</div>
         </div>
-        <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
-          <button class="vote-btn" onclick="voteComment('${c.id}','up')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="18,15 12,9 6,15"/></svg>
+        <div class="comment-votes">
+          <button class="vote-btn" type="button" onclick="voteComment('${c.id}','up')">
+            <span data-icon="chevron-up"></span>
             ${c.upvotes}
           </button>
-          <button class="vote-btn" onclick="voteComment('${c.id}','down')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="6,9 12,15 18,9"/></svg>
+          <button class="vote-btn" type="button" onclick="voteComment('${c.id}','down')">
+            <span data-icon="chevron-down"></span>
             ${c.downvotes}
           </button>
         </div>
       </div>`;
         list.appendChild(card);
     });
+    hydrateIcons(list);
 }
 
 async function voteComment(commentId, voteType) {

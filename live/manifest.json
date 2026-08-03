@@ -1,7 +1,7 @@
 {
     "name": "Stage Connect Live by UwU Apps",
     "short_name": "Stage Connect Live",
-    "description": "Join a live interactive stage — polls, Q&A, quizzes, and more.",
+    "description": "Join a live interactive stage: polls, Q&A, quizzes, and more.",
     "icons": [{
             "src": "SCL-192.png",
             "type": "image/png",
