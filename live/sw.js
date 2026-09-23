@@ -1,4 +1,6 @@
-const CACHE = "stage-connect-live-v4";
+// Bump on every deploy that changes anything this worker serves. A changed
+// worker file is what makes the browser install it and show the update bar.
+const CACHE = "stage-connect-live-v5";
 
 const ASSETS = [
   "/",
@@ -11,16 +13,18 @@ const ASSETS = [
   "/js/icons.js",
   "/js/ui.js",
   "/js/theme.js",
+  "/js/sw-update.js",
   "/SCL-main.png",
   "/favicon.ico",
   "/manifest.json"
 ];
 
+// No skipWaiting here and no clients.claim in activate: a new worker waits
+// until somebody presses Reload in the update bar.
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE).then((cache) => cache.addAll(ASSETS))
   );
-  self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
@@ -31,7 +35,15 @@ self.addEventListener("activate", (event) => {
       )
     )
   );
-  self.clients.claim();
+});
+
+self.addEventListener("message", (event) => {
+  const type = typeof event.data === "string" ? event.data : event.data?.type;
+
+  // The only place either of these is ever called.
+  if (type === "skip-waiting") {
+    event.waitUntil(self.skipWaiting().then(() => self.clients.claim()));
+  }
 });
 
 self.addEventListener("fetch", (event) => {

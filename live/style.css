@@ -75,3 +75,29 @@ button {
 button:hover {
   background: var(--brand-fill-strong);
 }
+
+/* Update bar: body centres its children in a row, so pin the bar to the top
+   instead, and give "Not now" the quiet look the button rule above removes. */
+.update-notice {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+}
+
+.update-notice p {
+  margin: 0;
+  font-size: inherit;
+  color: inherit;
+}
+
+.update-notice .btn-ghost {
+  background: transparent;
+  border-color: transparent;
+}
+
+.update-notice .btn-ghost:hover {
+  background: var(--surface-strong);
+  color: var(--ink);
+}
